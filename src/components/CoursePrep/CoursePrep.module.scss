@@ -1,0 +1,98 @@
+.CoursePrep {
+  background-color: #fff;
+  width: 800px;
+  min-height: 400px;
+  padding: 1rem;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .header {
+    display: flex;
+    gap: 8px;
+    flex-direction: column;
+
+    .title {
+      font-weight: 700;
+      font-size: 18px;
+      margin: 0;
+    }
+
+    .stepsContainer {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+
+      .stepsList {
+        display: grid;
+        align-items: center;
+        gap: 16px;
+        // grid-template-columns: repeat(3, 1fr);
+
+        .step {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          border-radius: 6px;
+          padding: 8px;
+          background-color: black;
+          color: white;
+          font-weight: 700;
+        }
+      }
+    }
+  }
+
+  .separator {
+    height: 1px;
+    background-color: #ddd;
+    margin: 8px 0;
+    border: 0;
+  }
+
+  .fileOverview {
+    flex: 1;
+    display: grid;
+    gap: 16px;
+  }
+}
+
+.coursePrepFileCategory {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .categoryHeader {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .categoryTitle {
+      font-weight: 700;
+    }
+  }
+
+  .files {
+    flex: 1;
+  }
+}
+
+.coursePrepFileItem {
+  display: grid;
+  align-items: baseline;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+
+  .fileInfo {
+    display: flex;
+    flex-direction: center;
+    gap: 8px;
+
+    .fileName {
+      font-weight: 700;
+    }
+  }
+}
