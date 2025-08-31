@@ -1,12 +1,8 @@
 import "./App.css";
-import CoursePrep from "./components/CoursePrep/CoursePrep";
+import ContentDeveloper from "./components/ContentDeveloper/ContentDeveloper";
 
 function App() {
-  return (
-    <>
-      <CoursePrep />
-    </>
-  );
+  return <ContentDeveloper />;
 }
 
 export default App;

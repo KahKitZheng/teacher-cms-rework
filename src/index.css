@@ -1,4 +1,10 @@
 :root {
+  --primary-color: #a0232a;
+  --secondary-color: #db8b93;
+  --tertiary-color: #f5c4c4;
+  --prim-text: #ffffff;
+  --sec-ter-text: #3b1318;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -27,7 +33,7 @@ p {
 }
 
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
   padding: 2rem;
 }
