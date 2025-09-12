@@ -5,6 +5,9 @@
   --prim-text: #ffffff;
   --sec-ter-text: #3b1318;
 
+  --light-gray: #edf0f3;
+  --blue-gray: #7890c4;
+
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
