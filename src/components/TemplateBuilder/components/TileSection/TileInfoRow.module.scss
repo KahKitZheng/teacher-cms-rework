@@ -1,0 +1,29 @@
+.tileSectionBuilder {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 100%;
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    svg {
+      height: 16px;
+      width: 16px;
+    }
+
+    .iconAndName {
+      display: flex;
+      align-items: center;
+
+      input {
+        margin-left: 8px;
+      }
+    }
+  }
+}

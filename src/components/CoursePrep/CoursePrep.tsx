@@ -1,6 +1,6 @@
 import { File, GripVerticalIcon, Plus, X } from "lucide-react";
-import styles from "./CoursePrep.module.scss";
-import { useState } from "react";
+// import { useState } from "react";
+import "./CoursePrep.module.scss";
 
 const data = [
   {
@@ -75,33 +75,33 @@ const data = [
 ];
 
 export default function CoursePrep() {
-  const [numberOfFileCategories, setNumberOfFileCategories] = useState(6);
+  // const [numberOfFileCategories, setNumberOfFileCategories] = useState(6);
 
   return (
-    <div className={styles.coursePrep}>
-      <p className={styles.title}>Themavoorbereiding</p>
-      <div className={styles.coursePrepGrid}>
-        <div className={styles.header}>
-          <div className={styles.stepsList}>
-            <div className={styles.step}>
+    <div styleName="coursePrep">
+      <p styleName="title">Themavoorbereiding</p>
+      <div styleName="coursePrepGrid">
+        <div styleName="header">
+          <div styleName="stepsList">
+            <div styleName="step">
               <GripVerticalIcon size={14} cursor="grab" />
               <span>Introductie</span>
             </div>
-            <div className={styles.step}>
+            <div styleName="step">
               <GripVerticalIcon size={14} cursor="grab" />
               <span>Lesstof</span>
             </div>
-            <div className={styles.step}>
+            <div styleName="step">
               <GripVerticalIcon size={14} cursor="grab" />
               <span>Afsluiting</span>
             </div>
-            <div className={styles.step}>
+            <div styleName="step">
               <GripVerticalIcon size={14} cursor="grab" />
               <span>Afsluiting</span>
             </div>
           </div>
         </div>
-        <hr className={styles.separator} />
+        <hr styleName="separator" />
         <div
           style={{
             display: "grid",
@@ -109,7 +109,7 @@ export default function CoursePrep() {
             gridColumn: "1 / -1",
           }}
         >
-          <div className={styles.fileOverview}>
+          <div styleName="fileOverview">
             {data.map((fileCategory, i) => (
               <CoursePrepFileCategory
                 title={fileCategory.title}
@@ -135,12 +135,12 @@ function CoursePrepFileCategory({
   };
 }) {
   return (
-    <div className={styles.coursePrepFileCategory}>
-      <div className={styles.categoryHeader}>
+    <div styleName="coursePrepFileCategory">
+      <div styleName="categoryHeader">
         <GripVerticalIcon size={14} cursor="grab" />
-        <p className={styles.categoryTitle}>{title}</p>
+        <p styleName="categoryTitle">{title}</p>
       </div>
-      <div className={styles.files}>
+      <div styleName="files">
         {fileCategory.files.map((file, i) => (
           <CoursePrepFileItem file={file} key={i} />
         ))}
@@ -171,16 +171,16 @@ function CoursePrepFileItem({
   file: { title: string; description: string };
 }) {
   return (
-    <div className={styles.coursePrepFileItem}>
+    <div styleName="coursePrepFileItem">
       <div style={{ display: "flex", justifyContent: "space-between" }}>
         <File fill="currentColor" stroke="var(--prim-text)" size={14} />
-        <div className={styles.fileHeader}>
+        <div styleName="fileHeader">
           <GripVerticalIcon size={14} cursor="grab" />
           <X />
         </div>
       </div>
-      <p className={styles.fileName}>{file.title}</p>
-      <p className={styles.fileDescription}>{file.description}</p>
+      <p styleName="fileName">{file.title}</p>
+      <p styleName="fileDescription">{file.description}</p>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import "./App.css";
-import ContentDeveloper from "./components/ContentDeveloper/ContentDeveloper";
+import TemplateBuilder from "./components/TemplateBuilder/TemplateBuilder";
 
 function App() {
-  return <ContentDeveloper />;
+  return <TemplateBuilder />;
 }
 
 export default App;
