@@ -73,7 +73,7 @@ type TileInfoPlaceholder = {
 }; // we need to decide if the data is just for templating or also for the course
 
 type TileInfoBlockText = {
-  id: number;
+  // id: number;
   icon?: {
     template?: string;
     editor?: string;
@@ -86,7 +86,7 @@ type TileInfoBlockText = {
 };
 
 type TileInfoBlockParagraph = {
-  id: number;
+  // id: number;
   type: "paragraph";
   name: string;
   data: Record<string, unknown>; // TipTap for sure
@@ -94,7 +94,7 @@ type TileInfoBlockParagraph = {
 };
 
 type TileInfoBlockDropdown = {
-  id: number;
+  // id: number;
   type: "dropdown";
   name: string;
   placeholder?: TileInfoPlaceholder;
