@@ -1,21 +1,16 @@
 .tileSectionBuilder {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 8px;
+  gap: 16px;
+  padding: 16px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #edf0f3;
   width: 100%;
 
   .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    svg {
-      height: 16px;
-      width: 16px;
-    }
 
     .iconAndName {
       display: flex;

@@ -1,5 +1,5 @@
+import TemplateBuilder from "src/components/TemplateBuilder/TemplateBuilder";
 import "./App.css";
-import TemplateBuilder from "./components/TemplateBuilder/TemplateBuilder";
 
 function App() {
   return <TemplateBuilder />;
