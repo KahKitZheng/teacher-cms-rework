@@ -19,7 +19,7 @@ export default function TeachingCoursePage(props: Readonly<indexProps>) {
         minHeight: "400px",
         minWidth: "700px",
         backgroundColor: "white",
-        padding: "16px",
+        padding: "24px 16px",
         display: "flex",
         flexDirection: "column",
         gap: "16px",

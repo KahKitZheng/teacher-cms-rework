@@ -1,19 +1,30 @@
 .tile-info-base {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 16px;
+  padding: 24px 16px;
   border-radius: 8px;
   border: 1px solid var(--light-gray);
+
+  &:hover .actions {
+    display: block;
+  }
+
+  .actions {
+    display: none;
+  }
 
   .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
 
-    .title {
+    .title-input {
       font-weight: 700;
+      flex: 1;
     }
 
     .actions {
@@ -22,9 +33,13 @@
       gap: 8px;
 
       .btn-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding: 0;
         background-color: transparent;
         border: none;
+        outline: none;
       }
     }
   }

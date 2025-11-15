@@ -1,0 +1,28 @@
+.handle {
+  background-color: white;
+  padding: 2px 16px;
+  border-radius: 6px;
+  border-width: 1px;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:focus {
+    outline: 2px solid var(--primary-color);
+  }
+
+  &.border-default {
+    border-style: solid;
+  }
+  &.border-dashed {
+    border-style: dashed;
+  }
+
+  &.theme-default {
+    border-color: var(--light-gray);
+  }
+  &.theme-channel {
+    border-color: var(--tertiary-color);
+  }
+}

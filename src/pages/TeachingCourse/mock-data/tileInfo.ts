@@ -4,7 +4,7 @@ const TILE_INFO_TEXT_DATA: TileInfoBlockText = {
   name: "[Optioneel] Materialen",
   data: "",
   placeholder: {
-    template: "knutselspullen, tekengerei en groot vel papier",
+    template: "",
   },
 };
 
@@ -13,31 +13,82 @@ const TILE_INFO_DROPDOWN_DATA: TileInfoBlockDropdown = {
   type: "dropdown",
   name: "Type",
   options: [
-    { label: "Tekenopdracht", value: "Tekenopdracht" },
-    { label: "Ontwerpopdracht", value: "Ontwerpopdracht" },
-    { label: "Vrije schrijfopdracht", value: "Vrije schrijfopdracht" },
+    {
+      label: "Tekenopdracht",
+      value: "Tekenopdracht",
+    },
+    {
+      label: "Ontwerpopdracht",
+      value: "Ontwerpopdracht",
+    },
+    {
+      label: "Vrije schrijfopdracht",
+      value: "Vrije schrijfopdracht",
+    },
     {
       label: "Laagdrempelige schrijfopdracht",
       value: "Laagdrempelige schrijfopdracht",
     },
-    { label: "Stelopdracht", value: "Stelopdracht" },
+    {
+      label: "Stelopdracht",
+      value: "Stelopdracht",
+    },
     {
       label: "Digitale schrijfopdracht",
       value: "Digitale schrijfopdracht",
     },
-    { label: "Poëzie opdracht", value: "Poëzie opdracht" },
-    { label: "Presentatieopdracht", value: "Presentatieopdracht" },
-    { label: "Onderzoeksopdracht", value: "Onderzoeksopdracht" },
-    { label: "Klassengesprek", value: "Klassengesprek" },
-    { label: "Duo-opdracht", value: "Duo-opdracht" },
-    { label: "Feedbackronde", value: "Feedbackronde" },
-    { label: "Proefje", value: "Proefje" },
-    { label: "Spelletje", value: "Spelletje" },
-    { label: "Muzikale opdracht", value: "Muzikale opdracht" },
-    { label: "Knutselopdracht", value: "Knutselopdracht" },
-    { label: "Opzoekopdracht", value: "Opzoekopdracht" },
-    { label: "Meningopdracht", value: "Meningopdracht" },
-    { label: "Invulopdracht", value: "Invulopdracht" },
+    {
+      label: "Poëzie opdracht",
+      value: "Poëzie opdracht",
+    },
+    {
+      label: "Presentatieopdracht",
+      value: "Presentatieopdracht",
+    },
+    {
+      label: "Onderzoeksopdracht",
+      value: "Onderzoeksopdracht",
+    },
+    {
+      label: "Klassengesprek",
+      value: "Klassengesprek",
+    },
+    {
+      label: "Duo-opdracht",
+      value: "Duo-opdracht",
+    },
+    {
+      label: "Feedbackronde",
+      value: "Feedbackronde",
+    },
+    {
+      label: "Proefje",
+      value: "Proefje",
+    },
+    {
+      label: "Spelletje",
+      value: "Spelletje",
+    },
+    {
+      label: "Muzikale opdracht",
+      value: "Muzikale opdracht",
+    },
+    {
+      label: "Knutselopdracht",
+      value: "Knutselopdracht",
+    },
+    {
+      label: "Opzoekopdracht",
+      value: "Opzoekopdracht",
+    },
+    {
+      label: "Meningopdracht",
+      value: "Meningopdracht",
+    },
+    {
+      label: "Invulopdracht",
+      value: "Invulopdracht",
+    },
   ],
 };
 

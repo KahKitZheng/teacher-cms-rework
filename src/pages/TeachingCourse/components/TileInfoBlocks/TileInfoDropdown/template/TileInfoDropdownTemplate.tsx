@@ -56,22 +56,11 @@ function MultiValueComponent() {
 
 function OptionComponent(props: any) {
   return (
-    <button
-      style={{
-        display: "flex",
-        alignItems: "baseline",
-        gap: "8px",
-        width: "100%",
-        borderRadius: 0,
-        backgroundColor: "white",
-      }}
-      onClick={() => props.selectOption(props.data)}
-    >
+    <button styleName="option" onClick={() => props.selectOption(props.data)}>
       <input
         type="checkbox"
         checked={props.isSelected}
         onChange={() => props.selectOption(props.data)}
-        style={{ margin: 0 }}
       />
       <p style={{ textAlign: "left", fontWeight: 400 }}>{props.data.label}</p>
     </button>

@@ -1,0 +1,36 @@
+.info-block-actions {
+  display: flex;
+  align-items: center;
+  border-radius: 6px;
+  border-width: 1px;
+  border-style: dashed;
+  border-color: var(--tertiary-color);
+  overflow: hidden;
+
+  &.border-default {
+    border-style: solid;
+  }
+  &.border-dashed {
+    border-style: dashed;
+  }
+
+  &.theme-default {
+    border-color: var(--light-gray);
+  }
+  &.theme-channel {
+    border-color: var(--tertiary-color);
+  }
+
+  .icon-btn {
+    padding: 2.75px 9px;
+    background-color: white;
+    outline: none;
+    border: none;
+    border-radius: unset;
+
+    &:hover {
+      outline: none;
+      background-color: var(--light-gray);
+    }
+  }
+}

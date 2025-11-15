@@ -1,17 +1,26 @@
 .tileSectionBuilder {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 16px;
   padding: 16px;
   border-radius: 6px;
-  // border: 1px solid #edf0f3;
   border: 1px dashed var(--tertiary-color);
   width: 100%;
+
+  &:hover .actions {
+    display: block;
+  }
+
+  .actions {
+    display: none;
+  }
 
   .header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin: 8px;
 
     .iconAndName {
       display: flex;

@@ -23,8 +23,7 @@ export default function TileInfoTextTemplate(
     <TileInfoBaseTemplate title={tileInfo.name}>
       <input
         type="text"
-        styleName="text-input"
-        placeholder={textData.placeholder?.template || ""}
+        placeholder="Description"
         value={text}
         onChange={handleTextChange}
       />

@@ -1,0 +1,14 @@
+.button {
+  background-color: var(--blue-gray);
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+
+  &:hover {
+    background-color: var(--blue-gray-hover);
+  }
+}
