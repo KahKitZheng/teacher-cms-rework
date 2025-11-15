@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Diamond, Pencil, PencilRuler, Plus, Trash } from "lucide-react";
+import { Diamond } from "lucide-react";
 import { DynamicIcon } from "lucide-react/dynamic";
-import "./TileInfoRow.module.scss";
-import Button from "src/components/Button/Button";
 import DragHandle from "../DragHandle/DragHandle";
 import InfoBlockActions from "../InfoBlockActions/InfoBlockActions";
+import "./TileInfoRow.module.scss";
+import IconPicker from "src/components/IconPicker/IconPicker";
+import { ICONS } from "src/constants/icons";
 
 type TileInfoRowProps = {
   tileInfoRow: TileInfoRow;
@@ -15,6 +16,7 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
   const { tileInfoRow, children } = props;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [title, setTitle] = useState(tileInfoRow.name);
 
   return (
     <div styleName="tileSectionBuilder">
@@ -43,12 +45,14 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
       {/* Content */}
       <div styleName="header">
         <div styleName="iconAndName">
-          <Diamond
-            fill="var(--primary-color)"
-            size={16}
-            stroke={"var(--primary-color)"}
+          <IconPicker icon={{ label: "Eye", value: "eye" }} icons={ICONS} />
+          <input
+            type="text"
+            styleName="title-input"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
           />
-          <p styleName="title">{tileInfoRow.name}</p>
         </div>
         <DynamicIcon
           size={16}

@@ -26,6 +26,8 @@
   .react-select__value-container {
     padding: 0;
     height: fit-content;
+    display: flex;
+    align-items: center;
   }
 
   .react-select__placeholder,
