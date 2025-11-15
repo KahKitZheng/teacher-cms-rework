@@ -4,11 +4,12 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import "./TileInfoRow.module.scss";
 
 type TileInfoRowProps = {
+  tileInfoRow: TileInfoRow;
   children: React.ReactNode;
 };
 
 export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
-  const { children } = props;
+  const { tileInfoRow, children } = props;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -16,8 +17,8 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
     <div styleName="tileSectionBuilder">
       <div styleName="header">
         <div styleName="iconAndName">
-          <PencilRuler size={14} />
-          <input type="text" placeholder="Enter title" />
+          <PencilRuler size={20} stroke={"var(--primary-color)"} />
+          <p styleName="title">{tileInfoRow.name}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           <Pencil size={14} />
@@ -41,7 +42,7 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
           />
         </div>
       </div>
-      <div>{children}</div>
+      <div style={{ display: "flex", gap: "16px" }}>{children}</div>
     </div>
   );
 }

@@ -1,8 +1,8 @@
-import TemplateBuilder from "src/components/TemplateBuilder/TemplateBuilder";
-import "./App.css";
+import TeachingCoursePage from "src/pages/TeachingCourse/TeachingCoursePage";
+import "./App.scss";
 
 function App() {
-  return <TemplateBuilder />;
+  return <TeachingCoursePage />;
 }
 
 export default App;

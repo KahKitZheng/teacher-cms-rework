@@ -1,0 +1,79 @@
+import { useState } from "react";
+import TileInfoBaseTemplate from "../../TileInfoBase/template/TileInfoBaseTemplate";
+import Select, { MultiValue } from "react-select";
+import "./TileInfoDropdownTemplate.module.scss";
+
+export type TileInfoDropdownTemplateProps = {
+  variant: "template";
+  tileInfo: TileInfoBlockDropdown;
+};
+
+export default function TileInfoDropdownTemplate(
+  props: Readonly<TileInfoDropdownTemplateProps>
+) {
+  const { tileInfo } = props;
+  const dropdownData = tileInfo;
+
+  const [selectOptions, setSelectOptions] = useState<TileInfoSelectOption[]>(
+    []
+  );
+
+  function updateSelectedOptions(selected: MultiValue<TileInfoSelectOption>) {
+    const updatedSelectOptions: TileInfoSelectOption[] = selected.map(
+      (option) => ({ ...option, selected: true })
+    );
+
+    setSelectOptions(updatedSelectOptions);
+  }
+
+  return (
+    <TileInfoBaseTemplate title={dropdownData.name}>
+      <Select
+        isMulti
+        isSearchable
+        isClearable={false}
+        hideSelectedOptions={false}
+        className="react-select-container"
+        classNamePrefix="react-select"
+        placeholder="Select option(s)" // should be overwritten
+        value={selectOptions}
+        options={dropdownData.options}
+        onChange={updateSelectedOptions}
+        closeMenuOnSelect={false}
+        // menuIsOpen
+        components={{
+          MultiValue: MultiValueComponent,
+          Option: OptionComponent,
+        }}
+      />
+    </TileInfoBaseTemplate>
+  );
+}
+
+function MultiValueComponent() {
+  return null;
+}
+
+function OptionComponent(props: any) {
+  return (
+    <button
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: "8px",
+        width: "100%",
+        borderRadius: 0,
+        backgroundColor: "white",
+      }}
+      onClick={() => props.selectOption(props.data)}
+    >
+      <input
+        type="checkbox"
+        checked={props.isSelected}
+        onChange={() => props.selectOption(props.data)}
+        style={{ margin: 0 }}
+      />
+      <p style={{ textAlign: "left", fontWeight: 400 }}>{props.data.label}</p>
+    </button>
+  );
+}

@@ -24,33 +24,36 @@ type Tile = {
   state: "open" | "locked" | "invisible";
 
   // Deprecated fields
-  old_id: number; // not used
-  chapter: string; // not used
-  isContentMenu: boolean; // in favor of `type`
-  isTest: boolean; // in favor of `type`
-  deleted: boolean; // do we need this?
-  courseId: number; // shouldn't be necessary if we can infer from chapterId. // sub-project - better to do it at the end
+  // old_id: number; // not used
+  // chapter: string; // not used
+  // isContentMenu: boolean; // in favor of `type`
+  // isTest: boolean; // in favor of `type`
+  // deleted: boolean; // do we need this?
+  // courseId: number; // shouldn't be necessary if we can infer from chapterId. // sub-project - better to do it at the end
 
   // New fields
   type: "regular" | "contentMenu" | "test"; // or undefined 🤔?
   subName?: string;
-  workFormat: CMS_ENUMS<Workformat>[]; // enum stored in backend
-  data: TileInfo[]; // only added on client, but on the API it's a separated table
+  data: TileInfoRow[]; // only added on client, but on the API it's a separated table
+  // workFormat: CMS_ENUMS<Workformat>[]; // enum stored in backend // maybe unused
 };
 
-type TileInfo = {
+/**
+ * TILE_INFO
+ */
+type TileInfoRow = {
   id: number;
   order: number;
   icon: string;
   name: string; // maybe tiptap - we need to decide if it's always just bold
-  data: TileInfoData[][]; // first array is vertically and the second horizontally?
-  required: boolean;
+  columns: TileInfoColumn[];
 };
 
-type TileInfoData = {
+type TileInfoColumn = {
   id: number;
   order: number;
-  data: TileInfoBlock;
+  blocks: TileInfoBlock[];
+  // width: string  // i.e. 2fr - need to build a dedicated UI for this though
 };
 
 type TileInfoBlock =
@@ -59,6 +62,44 @@ type TileInfoBlock =
   | TileInfoBlockParagraph
   | TileInfoBlockDropdown; // single value and multi-select (tags)?
 
+type TileInfoSelectOption = {
+  label: string;
+  subLabel?: string;
+  value: CMS_ENUMS<`${name}-${label}`>;
+  selected?: boolean; // do they need this?
+  disabled?: boolean;
+};
+
+type TileInfoBlockText = {
+  id: number;
+  icon?: {
+    template?: string;
+    editor?: string;
+    viewing?: string;
+  }; // we need to decide if the data is just for templating or also for the course
+  type: "text";
+  name: string;
+  data: string;
+  placeholder?: TileInfoPlaceholder;
+};
+
+type TileInfoBlockParagraph = {
+  id: number;
+  type: "paragraph";
+  name: string;
+  data: Record<string, unknown>; // TipTap for sure
+  placeholder?: TileInfoPlaceholder;
+};
+
+type TileInfoBlockDropdown = {
+  id: number;
+  type: "dropdown";
+  name: string;
+  placeholder?: TileInfoPlaceholder; // not used in template and editor, maybe only viewing?
+  options: TileInfoSelectOption[];
+};
+
+// TileInfo - Reusable object types
 type TileInfoBlockHeading = {
   id: number;
   icon?: string; // same for all types
@@ -72,40 +113,9 @@ type TileInfoPlaceholder = {
   viewing?: string;
 }; // we need to decide if the data is just for templating or also for the course
 
-type TileInfoBlockText = {
-  // id: number;
-  icon?: {
-    template?: string;
-    editor?: string;
-    viewing?: string;
-  }; // we need to decide if the data is just for templating or also for the course
-  type: "text";
-  name: string;
-  data: string;
-  placeholder?: TileInfoPlaceholder;
-};
-
-type TileInfoBlockParagraph = {
-  // id: number;
-  type: "paragraph";
-  name: string;
-  data: Record<string, unknown>; // TipTap for sure
-  placeholder?: TileInfoPlaceholder;
-};
-
-type TileInfoBlockDropdown = {
-  // id: number;
-  type: "dropdown";
-  name: string;
-  placeholder?: TileInfoPlaceholder;
-  options: {
-    label: string;
-    subLabel?: string;
-    value: CMS_ENUMS<`${name}-${label}`>;
-    selected?: boolean; // do they need this?
-  }[];
-};
-
+/**
+ *  ENUMS
+ */
 // for workformat or select menu or any hardcoded option on this page(??)
 type CMS_ENUMS = {
   id: number;
