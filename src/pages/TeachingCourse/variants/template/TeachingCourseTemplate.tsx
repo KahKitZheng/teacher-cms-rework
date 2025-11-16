@@ -37,7 +37,6 @@ export default function TeachingCourseTemplate() {
   const [tileInfo, setTileInfo] = useState(tilesData);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
-  const [overlayWidth, setOverlayWidth] = useState<number | null>(null);
 
   // Use custom hook for hover detection
   const { hoveredColumnId, hoveredBlockId } = useHoverDetection(
@@ -64,13 +63,11 @@ export default function TeachingCourseTemplate() {
     const result = handleDragStartUtil(event, tileInfo);
     setActiveId(result.activeId);
     setActiveBlockId(result.activeBlockId);
-    // setOverlayWidth(result.overlayWidth);
   }
 
   function resetDragState() {
     setActiveId(null);
     setActiveBlockId(null);
-    // setOverlayWidth(null);
   }
 
   function handleDragEnd(event: any) {
