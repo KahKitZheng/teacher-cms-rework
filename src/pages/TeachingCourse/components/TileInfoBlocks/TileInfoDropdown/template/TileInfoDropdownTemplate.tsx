@@ -6,12 +6,14 @@ import "./TileInfoDropdownTemplate.module.scss";
 export type TileInfoDropdownTemplateProps = {
   variant: "template";
   tileInfo: TileInfoBlockDropdown;
+  activeBlockId?: number | null;
+  hoveredBlockId?: number | null;
 };
 
 export default function TileInfoDropdownTemplate(
   props: Readonly<TileInfoDropdownTemplateProps>
 ) {
-  const { tileInfo } = props;
+  const { tileInfo, activeBlockId, hoveredBlockId } = props;
   const dropdownData = tileInfo;
 
   const [selectOptions, setSelectOptions] = useState<TileInfoSelectOption[]>(
@@ -27,7 +29,12 @@ export default function TileInfoDropdownTemplate(
   }
 
   return (
-    <TileInfoBaseTemplate title={dropdownData.name}>
+    <TileInfoBaseTemplate
+      title={dropdownData.name}
+      blockId={tileInfo.id}
+      activeBlockId={activeBlockId}
+      hoveredBlockId={hoveredBlockId}
+    >
       <Select
         isMulti
         isSearchable

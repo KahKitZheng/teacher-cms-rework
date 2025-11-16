@@ -94,7 +94,7 @@ const TILE_INFO_DROPDOWN_DATA: TileInfoBlockDropdown = {
 
 export const tilesData: Tile[] = [
   {
-    id: 1,
+    id: 143573456,
     chapterId: 1,
     order: 1,
     name: "Tile 1",
@@ -104,18 +104,18 @@ export const tilesData: Tile[] = [
     data: [
       // rows
       {
-        id: 1,
+        id: 1234234,
         name: "Kennis",
         icon: "pencil",
         order: 1,
         columns: [
           // columns
           {
-            id: 1,
+            id: 13457,
             order: 1,
             blocks: [
               {
-                id: 1,
+                id: 1586,
                 type: "text",
                 icon: { template: "pencil" },
                 name: "Beschrijving kennis",
@@ -126,33 +126,33 @@ export const tilesData: Tile[] = [
         ],
       },
       {
-        id: 2,
+        id: 2463456,
         name: "Verwerking",
         icon: "pencil",
         order: 2,
         columns: [
           // columns
           {
-            id: 2,
+            id: 2857,
             order: 1,
             blocks: [
               {
                 ...TILE_INFO_TEXT_DATA,
-                id: 1,
+                id: 12342,
               },
             ],
           },
           {
-            id: 3,
+            id: 312341235,
             order: 2,
             blocks: [
               {
                 ...TILE_INFO_TEXT_DATA,
-                id: 2,
+                id: 22346,
               },
               {
                 ...TILE_INFO_DROPDOWN_DATA,
-                id: 3,
+                id: 33457345,
               },
             ],
           },

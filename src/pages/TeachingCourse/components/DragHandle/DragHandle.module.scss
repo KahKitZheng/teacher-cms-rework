@@ -9,7 +9,7 @@
   justify-content: center;
 
   &:focus {
-    outline: 2px solid var(--primary-color);
+    outline: none;
   }
 
   &.border-default {
