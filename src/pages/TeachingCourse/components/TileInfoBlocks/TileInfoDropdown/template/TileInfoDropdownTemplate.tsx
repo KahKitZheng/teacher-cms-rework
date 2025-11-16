@@ -4,7 +4,7 @@ import Select, { MultiValue } from "react-select";
 import "./TileInfoDropdownTemplate.module.scss";
 
 export type TileInfoDropdownTemplateProps = {
-  variant: "template";
+  variant: "template" | "edit" | "read";
   tileInfo: TileInfoBlockDropdown;
   activeBlockId?: number | null;
   hoveredBlockId?: number | null;
