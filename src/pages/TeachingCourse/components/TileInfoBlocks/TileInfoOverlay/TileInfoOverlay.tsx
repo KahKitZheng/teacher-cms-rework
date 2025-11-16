@@ -46,6 +46,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                   key={block.id}
                   block={block}
                   variant="template"
+                  isDragOverlay={true}
                 />
               ))}
             </div>
@@ -65,7 +66,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
           pointerEvents: "none",
         }}
       >
-        <TileInfoBlock block={activeBlock} variant="template" />
+        <TileInfoBlock block={activeBlock} variant="template" isDragOverlay={true} />
       </div>
     );
   }

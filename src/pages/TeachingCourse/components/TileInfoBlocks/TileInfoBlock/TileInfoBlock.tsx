@@ -6,10 +6,11 @@ type TileInfoBlockProps = {
   variant: "template" | "edit" | "read";
   activeBlockId?: number | null;
   hoveredBlockId?: number | null;
+  isDragOverlay?: boolean;
 };
 
 export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
-  const { block, variant, activeBlockId, hoveredBlockId } = props;
+  const { block, variant, activeBlockId, hoveredBlockId, isDragOverlay } = props;
 
   switch (block.type) {
     case "text":
@@ -20,6 +21,7 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           tileInfo={block}
           activeBlockId={activeBlockId}
           hoveredBlockId={hoveredBlockId}
+          isDragOverlay={isDragOverlay}
         />
       );
     case "dropdown":
@@ -30,6 +32,7 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           tileInfo={block}
           activeBlockId={activeBlockId}
           hoveredBlockId={hoveredBlockId}
+          isDragOverlay={isDragOverlay}
         />
       );
     default:
