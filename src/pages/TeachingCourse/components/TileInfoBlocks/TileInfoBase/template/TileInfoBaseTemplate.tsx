@@ -19,21 +19,23 @@ type TileInfoBaseTemplateProps = {
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
   actions?: {
-    update: {
-      enabled: boolean;
-      callback: () => void;
-    };
-    delete: {
-      enabled: boolean;
-      callback: () => void;
-    };
+    add?: () => void;
+    update?: () => void;
+    delete?: () => void;
   };
 };
 
 export default function TileInfoBaseTemplate(
   props: Readonly<TileInfoBaseTemplateProps>
 ) {
-  const { children, actions, blockId, activeBlockId, hoveredBlockId, isDragOverlay = false } = props;
+  const {
+    children,
+    actions,
+    blockId,
+    activeBlockId,
+    hoveredBlockId,
+    isDragOverlay = false,
+  } = props;
 
   const [title, setTitle] = useState(props.title);
 
@@ -88,7 +90,9 @@ export default function TileInfoBaseTemplate(
   };
 
   const contentStyle = {
-    opacity: isDragOverlay ? 1 : getBlockContentOpacity(isDragging, activeBlockId, blockId, isHovered),
+    opacity: isDragOverlay
+      ? 1
+      : getBlockContentOpacity(isDragging, activeBlockId, blockId, isHovered),
     transition: `opacity ${DRAG_STYLES.TRANSITION}`,
     display: "flex",
     flexDirection: "column" as const,
@@ -126,7 +130,12 @@ export default function TileInfoBaseTemplate(
           right: "16px",
         }}
       >
-        <InfoBlockActions isDragOverlay={isDragOverlay} />
+        <InfoBlockActions
+          isDragOverlay={isDragOverlay}
+          // handleAdd={actions?.add}
+          handleEdit={actions?.update}
+          handleDelete={actions?.delete}
+        />
       </div>
 
       {/* Content */}

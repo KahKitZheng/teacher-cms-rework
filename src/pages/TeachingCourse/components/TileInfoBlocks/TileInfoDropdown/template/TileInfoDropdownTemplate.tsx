@@ -9,12 +9,23 @@ export type TileInfoDropdownTemplateProps = {
   activeBlockId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
+  onAddElement?: () => void;
+  onEditElement?: () => void;
+  onDeleteElement?: () => void;
 };
 
 export default function TileInfoDropdownTemplate(
   props: Readonly<TileInfoDropdownTemplateProps>
 ) {
-  const { tileInfo, activeBlockId, hoveredBlockId, isDragOverlay } = props;
+  const {
+    tileInfo,
+    activeBlockId,
+    hoveredBlockId,
+    isDragOverlay,
+    onAddElement,
+    onEditElement,
+    onDeleteElement,
+  } = props;
   const dropdownData = tileInfo;
 
   const [selectOptions, setSelectOptions] = useState<TileInfoSelectOption[]>(
@@ -36,6 +47,11 @@ export default function TileInfoDropdownTemplate(
       activeBlockId={activeBlockId}
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
+      actions={{
+        // add: onAddElement,
+        update: onEditElement,
+        delete: onDeleteElement,
+      }}
     >
       <Select
         isMulti

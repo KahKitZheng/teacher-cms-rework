@@ -5,6 +5,7 @@ import "./TileInfoTextEdit.module.scss";
 export type TileInfoTextEditProps = {
   variant: "edit";
   tileInfo: TileInfoData;
+  onDeleteElement?: () => void;
 };
 
 export default function TileInfoTextEdit(

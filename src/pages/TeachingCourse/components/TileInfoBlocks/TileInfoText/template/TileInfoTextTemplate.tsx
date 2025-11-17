@@ -8,12 +8,23 @@ export type TileInfoTextTemplateProps = {
   activeBlockId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
+  onAddElement?: () => void;
+  onEditElement?: () => void;
+  onDeleteElement?: () => void;
 };
 
 export default function TileInfoTextTemplate(
   props: Readonly<TileInfoTextTemplateProps>
 ) {
-  const { tileInfo, activeBlockId, hoveredBlockId, isDragOverlay } = props;
+  const {
+    tileInfo,
+    activeBlockId,
+    hoveredBlockId,
+    isDragOverlay,
+    onAddElement,
+    onEditElement,
+    onDeleteElement,
+  } = props;
   const textData = tileInfo;
 
   const [text, setText] = useState(textData.data);
@@ -29,6 +40,11 @@ export default function TileInfoTextTemplate(
       activeBlockId={activeBlockId}
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
+      actions={{
+        // add: onAddElement,
+        update: onEditElement,
+        delete: onDeleteElement,
+      }}
     >
       <input
         type="text"

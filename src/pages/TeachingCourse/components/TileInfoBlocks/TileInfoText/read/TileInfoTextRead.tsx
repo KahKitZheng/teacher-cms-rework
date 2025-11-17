@@ -3,6 +3,7 @@ import "./TileInfoTextRead.module.scss";
 export type TileInfoTextReadProps = {
   variant: "read";
   tileInfo: TileInfoData;
+  onDeleteElement?: () => void;
 };
 
 export default function TileInfoTextRead(

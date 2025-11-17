@@ -19,10 +19,22 @@ type TileInfoRowProps = {
   activeId?: number | null;
   activeBlockId?: number | null;
   isDragOverlay?: boolean;
+  onAddElement?: () => void;
+  onEditElement?: () => void;
+  onDeleteElement?: () => void;
 };
 
 export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
-  const { tileInfoRow, children, activeId, activeBlockId, isDragOverlay = false } = props;
+  const {
+    tileInfoRow,
+    children,
+    activeId,
+    activeBlockId,
+    isDragOverlay = false,
+    onAddElement,
+    onEditElement,
+    onDeleteElement,
+  } = props;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [title, setTitle] = useState(tileInfoRow.name);
@@ -76,6 +88,9 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
         <InfoBlockActions
           options={{ theme: "channel", borderStyle: "dashed" }}
           isDragOverlay={isDragOverlay}
+          handleAdd={onAddElement}
+          handleEdit={onEditElement}
+          handleDelete={onDeleteElement}
         />
       </div>
 

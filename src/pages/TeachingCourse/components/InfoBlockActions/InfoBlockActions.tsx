@@ -31,11 +31,15 @@ export default function InfoBlockActions(
   return (
     <div
       styleName={`info-block-actions theme-${theme} border-${effectiveBorderStyle}`}
-      style={isDragOverlay ? { borderColor: "var(--primary-color)" } : undefined}
+      style={
+        isDragOverlay ? { borderColor: "var(--primary-color)" } : undefined
+      }
     >
-      <button styleName="icon-btn" onClick={handleAdd}>
-        <Plus size={12} cursor="pointer" color={iconColor} />
-      </button>
+      {handleAdd && (
+        <button styleName="icon-btn" onClick={handleAdd}>
+          <Plus size={12} cursor="pointer" color={iconColor} />
+        </button>
+      )}
       <button styleName="icon-btn" onClick={handleEdit}>
         <Pencil size={12} cursor="pointer" color={iconColor} />
       </button>
