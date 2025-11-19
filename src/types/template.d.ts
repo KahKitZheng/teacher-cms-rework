@@ -34,7 +34,8 @@ type Tile = {
   // New fields
   type: "regular" | "contentMenu" | "test"; // or undefined 🤔?
   subName?: string;
-  data: TileInfoRow[]; // only added on client, but on the API it's a separated table
+  blocks: TileInfoBlock[]; // Tile-level blocks (separated from rows)
+  rows: TileInfoRow[]; // Rows (separated from blocks)
   // workFormat: CMS_ENUMS<Workformat>[]; // enum stored in backend // maybe unused
 };
 
@@ -42,13 +43,29 @@ type Tile = {
  * TILE_INFO
  */
 type TileInfoRow = {
+  type: "row";
+  level: "tile";
   id: number;
   order: number;
   icon: string;
   name: string; // maybe tiptap - we need to decide if it's always just bold
-  columns: TileInfoColumn[];
+  blocks: TileInfoBlock[]; // Row-level blocks (separated from layouts)
+  layouts: TileInfoColumnLayout[]; // Column layouts (separated from blocks)
 };
 
+type TileInfoColumnLayout = {
+  type: "columnLayout";
+  level: "row";
+  id: number;
+  order: number;
+  parentId: number; // References row.id
+  leftColumn: TileInfoBlock[]; // Left column blocks
+  rightColumn: TileInfoBlock[]; // Right column blocks
+};
+
+// DEPRECATED: TileInfoColumn is no longer used.
+// Column layouts now directly have leftColumn and rightColumn arrays.
+// Kept for backwards compatibility during migration.
 type TileInfoColumn = {
   id: number;
   order: number;
@@ -71,29 +88,41 @@ type TileInfoSelectOption = {
 };
 
 type TileInfoBlockText = {
+  type: "text";
+  level: "tile" | "row" | "column";
   id: number;
+  order: number;
+  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
+  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   icon?: {
     template?: string;
     editor?: string;
     viewing?: string;
   }; // we need to decide if the data is just for templating or also for the course
-  type: "text";
   name: string;
   data: string;
   placeholder?: TileInfoPlaceholder;
 };
 
 type TileInfoBlockParagraph = {
-  id: number;
   type: "paragraph";
+  level: "tile" | "row" | "column";
+  id: number;
+  order: number;
+  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
+  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   name: string;
   data: Record<string, unknown>; // TipTap for sure
   placeholder?: TileInfoPlaceholder;
 };
 
 type TileInfoBlockDropdown = {
-  id: number;
   type: "dropdown";
+  level: "tile" | "row" | "column";
+  id: number;
+  order: number;
+  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
+  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   name: string;
   placeholder?: TileInfoPlaceholder; // not used in template and editor, maybe only viewing?
   options: TileInfoSelectOption[];
@@ -101,10 +130,14 @@ type TileInfoBlockDropdown = {
 
 // TileInfo - Reusable object types
 type TileInfoBlockHeading = {
+  type: "heading";
+  level: "tile" | "row" | "column";
   id: number;
+  order: number;
+  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
+  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   icon?: string; // same for all types
   name: string;
-  type: "heading";
 };
 
 type TileInfoPlaceholder = {

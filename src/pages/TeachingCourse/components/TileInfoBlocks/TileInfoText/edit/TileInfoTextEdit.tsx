@@ -1,10 +1,9 @@
 import { ChangeEvent, useState } from "react";
-import { Pencil, Trash } from "lucide-react";
 import "./TileInfoTextEdit.module.scss";
 
 export type TileInfoTextEditProps = {
   variant: "edit";
-  tileInfo: TileInfoData;
+  tileInfo: TileInfoBlockText;
   onDeleteElement?: () => void;
 };
 
@@ -12,7 +11,7 @@ export default function TileInfoTextEdit(
   props: Readonly<TileInfoTextEditProps>
 ) {
   const { tileInfo } = props;
-  const textData = tileInfo.data as TileInfoBlockText;
+  const textData = tileInfo;
 
   const [text, setText] = useState(textData.data);
 
@@ -23,7 +22,7 @@ export default function TileInfoTextEdit(
   return (
     <div styleName="tile-info-block-text">
       <div styleName="header">
-        <p styleName="title">{tileInfo.data.name}</p>
+        <p styleName="title">{tileInfo.name}</p>
       </div>
       <input
         type="text"

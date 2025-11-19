@@ -2,6 +2,7 @@ import TileInfoRow from "../../components/TileInfoRow/TileInfoRow";
 import TileInfoBlock from "../../components/TileInfoBlocks/TileInfoBlock/TileInfoBlock";
 import TileInfoOverlay from "../../components/TileInfoBlocks/TileInfoOverlay/TileInfoOverlay";
 import DroppableColumn from "../../components/DroppableColumn/DroppableColumn";
+import SortableColumnLayout from "../../components/SortableColumnLayout/SortableColumnLayout";
 import Button from "src/components/Button/Button";
 import { tilesData } from "../../mock-data/tileInfo";
 import { CircleQuestionMark, Plus } from "lucide-react";
@@ -30,25 +31,36 @@ import {
   handleDragStart as handleDragStartUtil,
   handleRowDragEnd,
   handleBlockDragEnd,
+  handleLayoutDragEnd,
 } from "../../utils/dragHandlers";
-import { getAllRows, getAllBlocks } from "../../utils/dragDropHelpers";
+import {
+  getAllRows,
+  getAllBlocks,
+  getAllColumnLayouts,
+  findBlockById,
+} from "../../utils/dragDropHelpers";
 import { DRAG_STYLES } from "../../utils/dragDropConstants";
+import { randomId } from "../../utils/randomId";
 
 export default function TeachingCourseTemplate() {
   const [tileInfo, setTileInfo] = useState(tilesData);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [activeBlockId, setActiveBlockId] = useState<number | null>(null);
+  const [activeLayoutId, setActiveLayoutId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [modalAllowedTypes, setModalAllowedTypes] = useState<
-    ("row" | "text" | "dropdown")[]
+    ("row" | "text" | "dropdown" | "columnLayout")[]
   >(["row", "text", "dropdown"]);
   const [targetRowId, setTargetRowId] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<number | null>(null);
-  const [initialSelection, setInitialSelection] = useState<{
-    type: "row" | "text" | "dropdown";
-    options?: { columns?: 1 | 2 };
-  } | undefined>(undefined);
+  const [initialSelection, setInitialSelection] = useState<
+    | {
+        type: "row" | "text" | "dropdown" | "columnLayout";
+        options?: { columns?: 1 | 2 };
+      }
+    | undefined
+  >(undefined);
 
   // Use custom hook for hover detection
   const { hoveredColumnId, hoveredBlockId } = useHoverDetection(
@@ -75,17 +87,31 @@ export default function TeachingCourseTemplate() {
     const result = handleDragStartUtil(event, tileInfo);
     setActiveId(result.activeId);
     setActiveBlockId(result.activeBlockId);
+    setActiveLayoutId(result.activeLayoutId);
   }
+
+  // Check if the active block is a tile-level block
+  const isTileLevelBlock = activeBlockId
+    ? tileInfo[0].blocks.some(block => block.id === activeBlockId)
+    : false;
 
   function resetDragState() {
     setActiveId(null);
     setActiveBlockId(null);
+    setActiveLayoutId(null);
   }
 
   function handleDragEnd(event: any) {
     // Handle row dragging
     if (activeId) {
       const updatedTiles = handleRowDragEnd(event, tileInfo);
+      if (updatedTiles) {
+        setTileInfo(updatedTiles);
+      }
+    }
+    // Handle column layout dragging
+    else if (activeLayoutId) {
+      const updatedTiles = handleLayoutDragEnd(event, tileInfo);
       if (updatedTiles) {
         setTileInfo(updatedTiles);
       }
@@ -112,7 +138,11 @@ export default function TeachingCourseTemplate() {
 
   function handleOpenModal(
     mode: "add" | "edit",
-    allowedTypes: ("row" | "text" | "dropdown")[] = ["row", "text", "dropdown"],
+    allowedTypes: ("row" | "text" | "dropdown" | "columnLayout")[] = [
+      "row",
+      "text",
+      "dropdown",
+    ],
     rowId: number | null = null,
     blockId: number | null = null
   ) {
@@ -124,14 +154,10 @@ export default function TeachingCourseTemplate() {
     // Set initial selection for edit mode
     if (mode === "edit") {
       if (rowId !== null) {
-        // Editing a row - find its column count
-        const row = getAllRows(tileInfo).find((r) => r.id === rowId);
-        if (row) {
-          setInitialSelection({
-            type: "row",
-            options: { columns: row.columns.length as 1 | 2 },
-          });
-        }
+        // Editing a row - rows are now just containers
+        setInitialSelection({
+          type: "row",
+        });
       } else if (blockId !== null) {
         // Editing a block - find its type
         const block = getAllBlocks(tileInfo).find((b) => b.id === blockId);
@@ -156,7 +182,10 @@ export default function TeachingCourseTemplate() {
   function handleDeleteRow(rowId: number) {
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
-      updatedTiles[0].data = updatedTiles[0].data.filter((row) => row.id !== rowId);
+      updatedTiles[0] = {
+        ...updatedTiles[0],
+        rows: updatedTiles[0].rows.filter((row) => row.id !== rowId),
+      };
       return updatedTiles;
     });
   }
@@ -164,11 +193,41 @@ export default function TeachingCourseTemplate() {
   function handleDeleteBlock(blockId: number) {
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
-      for (const row of updatedTiles[0].data) {
-        for (const column of row.columns) {
-          column.blocks = column.blocks.filter((block) => block.id !== blockId);
-        }
-      }
+
+      // Remove from tile-level blocks
+      updatedTiles[0] = {
+        ...updatedTiles[0],
+        blocks: updatedTiles[0].blocks.filter((block) => block.id !== blockId),
+        rows: updatedTiles[0].rows.map((row) => ({
+          ...row,
+          // Remove from row-level blocks
+          blocks: row.blocks.filter((block) => block.id !== blockId),
+          // Remove from column layouts
+          layouts: row.layouts.map((layout) => ({
+            ...layout,
+            leftColumn: layout.leftColumn.filter((block) => block.id !== blockId),
+            rightColumn: layout.rightColumn.filter((block) => block.id !== blockId),
+          })),
+        })),
+      };
+
+      return updatedTiles;
+    });
+  }
+
+  function handleDeleteColumnLayout(layoutId: number) {
+    setTileInfo((prev) => {
+      const updatedTiles = [...prev];
+
+      // Remove column layout from rows
+      updatedTiles[0] = {
+        ...updatedTiles[0],
+        rows: updatedTiles[0].rows.map((row) => ({
+          ...row,
+          layouts: row.layouts.filter((layout) => layout.id !== layoutId),
+        })),
+      };
+
       return updatedTiles;
     });
   }
@@ -177,85 +236,58 @@ export default function TeachingCourseTemplate() {
   function createBlock(
     blockId: number,
     type: "text" | "dropdown",
-    name: string = ""
+    level: "tile" | "row" | "column",
+    order: number,
+    name: string = "",
+    parentId?: number,
+    columnSide?: "left" | "right"
   ): TileInfoBlock {
+    const baseFields = {
+      id: blockId,
+      level,
+      order,
+      parentId,
+      columnSide,
+    };
+
     if (type === "text") {
       return {
-        id: blockId,
+        ...baseFields,
         type: "text",
         name,
         data: "",
         placeholder: { template: "Enter text..." },
-      };
+      } as TileInfoBlockText;
     }
     return {
-      id: blockId,
+      ...baseFields,
       type: "dropdown",
       name,
       placeholder: { template: "Select option(s)" },
       options: [],
-    };
-  }
-
-  // Helper function to update row columns
-  function updateRowColumns(
-    row: TileInfoRow,
-    targetColumns: number
-  ): void {
-    const currentColumns = row.columns.length;
-
-    if (currentColumns === targetColumns) return;
-
-    if (targetColumns > currentColumns) {
-      // Add new columns
-      for (let i = currentColumns; i < targetColumns; i++) {
-        row.columns.push({
-          id: row.id * 100 + i + 1,
-          order: i,
-          blocks: [],
-        });
-      }
-    } else {
-      // Remove columns and preserve blocks by moving them to first column
-      const blocksToPreserve = row.columns
-        .slice(targetColumns)
-        .flatMap((col) => col.blocks);
-      row.columns[0].blocks.push(...blocksToPreserve);
-      row.columns = row.columns.slice(0, targetColumns);
-    }
+    } as TileInfoBlockDropdown;
   }
 
   // Handle row selection (add or edit)
-  function handleRowSelect(numColumns: number) {
-    if (modalMode === "edit" && targetRowId !== null) {
-      // Edit existing row
-      setTileInfo((prev) => {
-        const updatedTiles = [...prev];
-        const row = updatedTiles[0].data.find((r) => r.id === targetRowId);
-        if (row) {
-          updateRowColumns(row, numColumns);
-        }
-        return updatedTiles;
-      });
-    } else {
-      // Add new row
-      const newRowId = Math.max(...getAllRows(tileInfo).map((r) => r.id)) + 1;
-      const newRow: TileInfoRow = {
-        id: newRowId,
-        order: tileInfo[0].data.length,
-        icon: "eye",
-        name: "",
-        columns: Array.from({ length: numColumns }, (_, i) => ({
-          id: newRowId * 100 + i + 1,
-          order: i,
-          blocks: [],
-        })),
-      };
+  function handleRowSelect() {
+    // Add new row (edit mode not supported for rows anymore)
+    const newRowId = +randomId();
+    const newRow: TileInfoRow = {
+      type: "row",
+      level: "tile",
+      id: newRowId,
+      order: tileInfo[0].blocks.length + tileInfo[0].rows.length, // Total count of tile-level items
+      icon: "eye",
+      name: "",
+      blocks: [], // Start with empty blocks
+      layouts: [], // Start with empty layouts
+    };
 
-      setTileInfo((prev) => [
-        { ...prev[0], data: [...prev[0].data, newRow] },
-      ]);
-    }
+    setTileInfo((prev) => [{
+      ...prev[0],
+      rows: [...prev[0].rows, newRow]
+    }]);
+    handleCloseModal();
   }
 
   // Handle block selection (add or edit)
@@ -264,72 +296,125 @@ export default function TeachingCourseTemplate() {
       // Edit existing block - change its type
       setTileInfo((prev) => {
         const updatedTiles = [...prev];
-        for (const row of updatedTiles[0].data) {
-          for (const column of row.columns) {
-            const blockIndex = column.blocks.findIndex(
-              (b) => b.id === editingBlockId
-            );
-            if (blockIndex !== -1) {
-              const oldBlock = column.blocks[blockIndex];
-              column.blocks[blockIndex] = createBlock(
-                oldBlock.id,
-                type,
-                oldBlock.name
-              );
-              return updatedTiles;
-            }
-          }
+        const blockResult = findBlockById(updatedTiles, editingBlockId);
+
+        if (!blockResult) {
+          return updatedTiles;
         }
+
+        const { block: oldBlock, location } = blockResult;
+        const tile = updatedTiles[location.tileIdx];
+
+        // Create updated block with same properties but different type
+        const updatedBlock = createBlock(
+          oldBlock.id,
+          type,
+          oldBlock.level,
+          oldBlock.order,
+          oldBlock.name,
+          oldBlock.parentId,
+          oldBlock.columnSide
+        );
+
+        // Update block in the correct array
+        if (location.rowIdx === -1) {
+          // Tile-level block
+          tile.blocks[location.blockIdx] = updatedBlock;
+        } else if (location.layoutIdx === -1) {
+          // Row-level block
+          tile.rows[location.rowIdx].blocks[location.blockIdx] = updatedBlock;
+        } else {
+          // Column-level block
+          const layout = tile.rows[location.rowIdx].layouts[location.layoutIdx];
+          const column = location.colIdx === 0 ? layout.leftColumn : layout.rightColumn;
+          column[location.blockIdx] = updatedBlock;
+        }
+
         return updatedTiles;
       });
+      handleCloseModal();
     } else {
       // Add new block
-      const newBlockId =
-        Math.max(...getAllBlocks(tileInfo).map((b) => b.id), 0) + 1;
-      const newBlock = createBlock(newBlockId, type);
+      const newBlockId = +randomId();
 
       setTileInfo((prev) => {
         const updatedTiles = [...prev];
+        const tile = updatedTiles[0];
 
-        if (updatedTiles[0].data.length === 0) {
-          // No rows exist - create first row with the new block
-          const newRowId = 1;
-          updatedTiles[0].data.push({
-            id: newRowId,
-            order: 0,
-            icon: "eye",
-            name: "",
-            columns: [
-              { id: newRowId * 100 + 1, order: 0, blocks: [newBlock] },
-            ],
-          });
-        } else {
-          // Add to target row or last row
-          const targetRow =
-            targetRowId !== null
-              ? updatedTiles[0].data.find((row) => row.id === targetRowId)
-              : updatedTiles[0].data[updatedTiles[0].data.length - 1];
-
+        if (targetRowId !== null) {
+          // Add to specific row's blocks array
+          const targetRow = tile.rows.find((row) => row.id === targetRowId);
           if (targetRow) {
-            targetRow.columns[0].blocks.push(newBlock);
+            const newBlock = createBlock(
+              newBlockId,
+              type,
+              "row",
+              targetRow.blocks.length + targetRow.layouts.length, // Order within row
+              "",
+              targetRowId
+            );
+            targetRow.blocks.push(newBlock);
           }
+        } else {
+          // Add as direct block to tile.blocks
+          const newBlock = createBlock(
+            newBlockId,
+            type,
+            "tile",
+            tile.blocks.length + tile.rows.length, // Order within tile
+            ""
+          );
+          tile.blocks.push(newBlock);
         }
 
         return updatedTiles;
       });
+      handleCloseModal();
     }
   }
 
   // Main handler for element selection
   function handleElementSelect(
-    type: "row" | "text" | "dropdown",
-    options?: { columns?: 1 | 2 }
+    type: "row" | "text" | "dropdown" | "columnLayout"
   ) {
     if (type === "row") {
-      handleRowSelect(options?.columns || 1);
+      handleRowSelect();
+    } else if (type === "columnLayout") {
+      handleColumnLayoutSelect();
     } else {
       handleBlockSelect(type);
     }
+  }
+
+  // Handle column layout selection (2-column layout inside a row)
+  function handleColumnLayoutSelect() {
+    if (targetRowId === null) return;
+
+    const newLayoutId = +randomId();
+
+    setTileInfo((prev) => {
+      const updatedTiles = [...prev];
+      const targetRow = updatedTiles[0].rows.find(
+        (row) => row.id === targetRowId
+      );
+
+      if (targetRow) {
+        const newColumnLayout: TileInfoColumnLayout = {
+          type: "columnLayout",
+          level: "row",
+          id: newLayoutId,
+          order: targetRow.blocks.length + targetRow.layouts.length,
+          parentId: targetRowId,
+          leftColumn: [],
+          rightColumn: [],
+        };
+
+        targetRow.layouts.push(newColumnLayout);
+      }
+
+      return updatedTiles;
+    });
+    handleCloseModal();
   }
 
   // Get active items for overlay
@@ -338,6 +423,11 @@ export default function TeachingCourseTemplate() {
     : null;
   const activeBlock = activeBlockId
     ? getAllBlocks(tileInfo).find((block) => block.id === activeBlockId)
+    : null;
+  const activeLayout = activeLayoutId
+    ? getAllColumnLayouts(tileInfo).find(
+        (layout) => layout.id === activeLayoutId
+      )
     : null;
 
   return (
@@ -378,12 +468,15 @@ export default function TeachingCourseTemplate() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
           modifiers={
-            activeId ? [restrictToVerticalAxis, restrictToParentElement] : []
+            activeId || isTileLevelBlock ? [restrictToVerticalAxis, restrictToParentElement] : []
           }
         >
-          {/* Rows sortable context */}
+          {/* Tile-level sortable context (blocks and rows) */}
           <SortableContext
-            items={tileInfo.flatMap((tile) => tile.data.map((row) => row.id))}
+            items={tileInfo.flatMap((tile) => [
+              ...tile.blocks.map((block) => block.id),
+              ...tile.rows.map((row) => row.id),
+            ])}
             strategy={verticalListSortingStrategy}
           >
             {tileInfo.map((tile) => (
@@ -395,46 +488,179 @@ export default function TeachingCourseTemplate() {
                     gap: "24px",
                   }}
                 >
-                  {tile.data.map((tileInfoRow) => (
-                    <TileInfoRow
-                      key={tileInfoRow.id}
-                      tileInfoRow={tileInfoRow}
-                      activeId={activeId}
-                      activeBlockId={activeBlockId}
-                      onAddElement={() =>
-                        handleOpenModal("add", ["text", "dropdown"], tileInfoRow.id)
-                      }
-                      onEditElement={() =>
-                        handleOpenModal("edit", ["row"], tileInfoRow.id)
-                      }
-                      onDeleteElement={() => handleDeleteRow(tileInfoRow.id)}
-                    >
-                      {tileInfoRow.columns.map((column) => (
-                        <DroppableColumn
-                          key={column.id}
-                          column={column}
-                          rowId={tileInfoRow.id}
-                          activeBlockId={activeBlockId}
-                          hoveredColumnId={hoveredColumnId}
+                  {/* Combine and sort blocks and rows by order */}
+                  {[
+                    ...tile.blocks.map((block) => ({ ...block, _itemType: 'block' as const })),
+                    ...tile.rows.map((row) => ({ ...row, _itemType: 'row' as const })),
+                  ]
+                    .sort((a, b) => a.order - b.order)
+                    .map((item) =>
+                      item._itemType === 'row' ? (
+                      <TileInfoRow
+                        key={item.id}
+                        tileInfoRow={item}
+                        activeId={activeId}
+                        activeBlockId={activeBlockId}
+                        onAddElement={() =>
+                          handleOpenModal(
+                            "add",
+                            ["text", "dropdown", "columnLayout"],
+                            item.id
+                          )
+                        }
+                        onEditElement={() =>
+                          handleOpenModal("edit", ["row"], item.id)
+                        }
+                        onDeleteElement={() => handleDeleteRow(item.id)}
+                      >
+                        <SortableContext
+                          items={[
+                            ...item.blocks.map((block) => block.id),
+                            ...item.layouts.map((layout) => layout.id),
+                          ]}
+                          strategy={verticalListSortingStrategy}
                         >
-                          {column.blocks.map((block) => (
-                            <TileInfoBlock
-                              key={block.id}
-                              block={block}
-                              variant="template"
-                              activeBlockId={activeBlockId}
-                              hoveredBlockId={hoveredBlockId}
-                              // onAddElement={() => handleOpenModal("add", ["text", "dropdown"])}
-                              onEditElement={() =>
-                                handleOpenModal("edit", ["text", "dropdown"], null, block.id)
-                              }
-                              onDeleteElement={() => handleDeleteBlock(block.id)}
-                            />
-                          ))}
-                        </DroppableColumn>
-                      ))}
-                    </TileInfoRow>
-                  ))}
+                          {/* Combine and sort row blocks and layouts by order */}
+                          {[
+                            ...item.blocks.map((block) => ({ ...block, _itemType: 'block' as const })),
+                            ...item.layouts.map((layout) => ({ ...layout, _itemType: 'layout' as const })),
+                          ]
+                            .sort((a, b) => a.order - b.order)
+                            .map((rowItem) =>
+                              rowItem._itemType === 'layout' ? (
+                                // Render sortable 2-column layout
+                                <SortableColumnLayout
+                                  key={rowItem.id}
+                                  columnLayout={rowItem}
+                                  activeLayoutId={activeLayoutId}
+                                  activeId={activeId}
+                                  hoveredLayoutId={null}
+                                  onDeleteElement={() =>
+                                    handleDeleteColumnLayout(rowItem.id)
+                                  }
+                                >
+                                  {/* Left column */}
+                                  <DroppableColumn
+                                    key={`${rowItem.id}-left`}
+                                    layoutId={rowItem.id}
+                                    rowId={item.id}
+                                    side="left"
+                                    activeBlockId={activeBlockId}
+                                    hoveredColumnId={hoveredColumnId}
+                                  >
+                                    <SortableContext
+                                      items={rowItem.leftColumn.map((b) => b.id)}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      {rowItem.leftColumn.map((block) => (
+                                        <TileInfoBlock
+                                          key={block.id}
+                                          block={block}
+                                          variant="template"
+                                          activeBlockId={activeBlockId}
+                                          activeId={activeId}
+                                          hoveredBlockId={hoveredBlockId}
+                                          level="column"
+                                          onEditElement={() =>
+                                            handleOpenModal(
+                                              "edit",
+                                              ["text", "dropdown"],
+                                              null,
+                                              block.id
+                                            )
+                                          }
+                                          onDeleteElement={() =>
+                                            handleDeleteBlock(block.id)
+                                          }
+                                        />
+                                      ))}
+                                    </SortableContext>
+                                  </DroppableColumn>
+                                  {/* Right column */}
+                                  <DroppableColumn
+                                    key={`${rowItem.id}-right`}
+                                    layoutId={rowItem.id}
+                                    rowId={item.id}
+                                    side="right"
+                                    activeBlockId={activeBlockId}
+                                    hoveredColumnId={hoveredColumnId}
+                                  >
+                                    <SortableContext
+                                      items={rowItem.rightColumn.map((b) => b.id)}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      {rowItem.rightColumn.map((block) => (
+                                        <TileInfoBlock
+                                          key={block.id}
+                                          block={block}
+                                          variant="template"
+                                          activeBlockId={activeBlockId}
+                                          activeId={activeId}
+                                          hoveredBlockId={hoveredBlockId}
+                                          level="column"
+                                          onEditElement={() =>
+                                            handleOpenModal(
+                                              "edit",
+                                              ["text", "dropdown"],
+                                              null,
+                                              block.id
+                                            )
+                                          }
+                                          onDeleteElement={() =>
+                                            handleDeleteBlock(block.id)
+                                          }
+                                        />
+                                      ))}
+                                    </SortableContext>
+                                  </DroppableColumn>
+                                </SortableColumnLayout>
+                              ) : (
+                                // Render direct block in row
+                                <TileInfoBlock
+                                  key={rowItem.id}
+                                  block={rowItem}
+                                  variant="template"
+                                  activeBlockId={activeBlockId}
+                                  activeId={activeId}
+                                  hoveredBlockId={hoveredBlockId}
+                                  level="row"
+                                  onEditElement={() =>
+                                    handleOpenModal(
+                                      "edit",
+                                      ["text", "dropdown"],
+                                      null,
+                                      rowItem.id
+                                    )
+                                  }
+                                  onDeleteElement={() =>
+                                    handleDeleteBlock(rowItem.id)
+                                  }
+                                />
+                              )
+                            )}
+                        </SortableContext>
+                      </TileInfoRow>
+                    ) : (
+                      <TileInfoBlock
+                        key={item.id}
+                        block={item}
+                        variant="template"
+                        activeBlockId={activeBlockId}
+                        activeId={activeId}
+                        hoveredBlockId={hoveredBlockId}
+                        level="tile"
+                        onEditElement={() =>
+                          handleOpenModal(
+                            "edit",
+                            ["text", "dropdown"],
+                            null,
+                            item.id
+                          )
+                        }
+                        onDeleteElement={() => handleDeleteBlock(item.id)}
+                      />
+                    )
+                  )}
                 </div>
               </div>
             ))}
@@ -450,8 +676,10 @@ export default function TeachingCourseTemplate() {
             <TileInfoOverlay
               activeRow={activeRow}
               activeBlock={activeBlock}
+              activeLayout={activeLayout}
               activeId={activeId}
               activeBlockId={activeBlockId}
+              activeLayoutId={activeLayoutId}
             />
           </DragOverlay>
         </DndContext>

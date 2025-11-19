@@ -3,10 +3,7 @@ import { OPACITY, COLOR_OPACITY, DRAG_STYLES } from "./dragDropConstants";
 /**
  * Generate a semi-transparent color using CSS color-mix
  */
-export function getTransparentColor(
-  color: string,
-  opacity: number
-): string {
+export function getTransparentColor(color: string, opacity: number): string {
   return `color-mix(in srgb, ${color} ${opacity}%, transparent)`;
 }
 
@@ -17,11 +14,15 @@ export function getBlockContentOpacity(
   isDragging: boolean,
   activeBlockId: number | null | undefined,
   blockId: number,
-  isHovered: boolean
+  isHovered: boolean,
+  activeId?: number | null
 ): number {
   if (isDragging) return OPACITY.HIDDEN;
+  // Dim blocks when any block is being dragged (but not this one, unless hovered)
   if (activeBlockId && activeBlockId !== blockId && !isHovered)
     return OPACITY.DIMMED;
+  // Dim blocks when a row is being dragged
+  if (activeId && !activeBlockId) return OPACITY.DIMMED;
   return OPACITY.NORMAL;
 }
 
@@ -31,10 +32,14 @@ export function getBlockContentOpacity(
 export function getRowOpacity(
   isDragging: boolean,
   activeId: number | null | undefined,
-  rowId: number
+  rowId: number,
+  activeBlockId?: number | null
 ): number {
   if (isDragging) return OPACITY.HIDDEN;
-  if (activeId && activeId !== rowId) return OPACITY.DIMMED_ROW;
+  // Dim rows when another row is being dragged
+  if (activeId && activeId !== rowId) return OPACITY.DIMMED;
+  // Dim rows when a tile-level block is being dragged
+  if (activeBlockId) return OPACITY.DIMMED;
   return OPACITY.NORMAL;
 }
 
@@ -59,15 +64,10 @@ export function getBlockDragStyles(
 ): React.CSSProperties {
   const styles: React.CSSProperties = {};
 
-  // Show all possible drop targets when dragging
-  if (activeBlockId && activeBlockId !== blockId) {
-    styles.outline = `1px dashed ${getTransparentColor(
-      "var(--primary-color)",
-      COLOR_OPACITY.BORDER
-    )}`;
-  }
+  // Only show visual feedback for hovered blocks (which are already filtered by level compatibility)
+  // Removed the "show all possible drop targets" styling to prevent incorrect visual feedback
 
-  // Stronger visual feedback when hovering
+  // Visual feedback when hovering over a compatible drop target
   if (isHovered && activeBlockId && activeBlockId !== blockId) {
     styles.outline = "2px solid var(--primary-color)";
     styles.backgroundColor = getTransparentColor(
@@ -96,25 +96,42 @@ export function getColumnDropZoneStyles(
     transition: `background-color ${DRAG_STYLES.TRANSITION}, outline ${DRAG_STYLES.TRANSITION}`,
   };
 
-  // Show all possible dropzones when dragging
-  if (activeBlockId) {
-    styles.backgroundColor = getTransparentColor(
-      "var(--primary-color)",
-      COLOR_OPACITY.LIGHT
-    );
-    styles.outline = `1px dashed ${getTransparentColor(
-      "var(--primary-color)",
-      COLOR_OPACITY.BORDER
-    )}`;
-  }
-
-  // Stronger visual feedback when hovering
+  // Only show visual feedback when hovering over a compatible column
+  // (hover detection already filters for compatible blocks)
   if (isHovered && activeBlockId) {
     styles.outline = "2px dashed var(--primary-color)";
     styles.backgroundColor = getTransparentColor(
       "var(--primary-color)",
       COLOR_OPACITY.MEDIUM
     );
+  }
+
+  return styles;
+}
+
+/**
+ * Get row drop zone styles (for when blocks are dragged over a row)
+ */
+export function getRowDropZoneStyles(
+  activeBlockId: number | null | undefined,
+  isBlockOver: boolean
+): React.CSSProperties {
+  const styles: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+  };
+
+  // Show visual feedback when a block is dragged over the row
+  if (activeBlockId && isBlockOver) {
+    styles.outline = "2px dashed var(--primary-color)";
+    styles.outlineOffset = "4px";
+    styles.backgroundColor = getTransparentColor(
+      "var(--primary-color)",
+      COLOR_OPACITY.LIGHT
+    );
+    styles.borderRadius = "8px";
+    styles.padding = "8px";
   }
 
   return styles;

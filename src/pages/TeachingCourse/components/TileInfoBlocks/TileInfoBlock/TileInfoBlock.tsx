@@ -5,8 +5,10 @@ type TileInfoBlockProps = {
   block: TileInfoBlock;
   variant: "template" | "edit" | "read";
   activeBlockId?: number | null;
+  activeId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
+  level?: "tile" | "row" | "column"; // Hierarchy level for collision detection
   onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;
@@ -17,8 +19,10 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
     block,
     variant,
     activeBlockId,
+    activeId,
     hoveredBlockId,
     isDragOverlay,
+    level,
     onAddElement,
     onEditElement,
     onDeleteElement,
@@ -32,8 +36,10 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           variant={variant}
           tileInfo={block}
           activeBlockId={activeBlockId}
+          activeId={activeId}
           hoveredBlockId={hoveredBlockId}
           isDragOverlay={isDragOverlay}
+          level={level}
           // onAddElement={onAddElement}
           onEditElement={onEditElement}
           onDeleteElement={onDeleteElement}
@@ -46,8 +52,10 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           variant={variant}
           tileInfo={block}
           activeBlockId={activeBlockId}
+          activeId={activeId}
           hoveredBlockId={hoveredBlockId}
           isDragOverlay={isDragOverlay}
+          level={level}
           // onAddElement={onAddElement}
           onEditElement={onEditElement}
           onDeleteElement={onDeleteElement}

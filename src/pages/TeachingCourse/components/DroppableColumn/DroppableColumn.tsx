@@ -3,8 +3,9 @@ import { getColumnDropZoneStyles } from "../../utils/dragDropStyles";
 import { DRAG_TYPE } from "../../utils/dragDropConstants";
 
 type DroppableColumnProps = {
-  column: { id: number };
+  layoutId: number;
   rowId: number;
+  side: "left" | "right";
   activeBlockId: number | null;
   hoveredColumnId: string | null;
   children: React.ReactNode;
@@ -13,18 +14,20 @@ type DroppableColumnProps = {
 /**
  * Droppable column component for drag and drop
  * Provides visual feedback when blocks are dragged over it
+ * New column ID format: column-{rowId}-{layoutId}-{side}
  */
 export default function DroppableColumn(props: Readonly<DroppableColumnProps>) {
-  const { column, rowId, activeBlockId, hoveredColumnId, children } = props;
+  const { layoutId, rowId, side, activeBlockId, hoveredColumnId, children } = props;
 
-  const columnId = `column-${rowId}-${column.id}`;
+  const columnId = `column-${rowId}-${layoutId}-${side}`;
 
   const { setNodeRef } = useDroppable({
     id: columnId,
     data: {
       type: DRAG_TYPE.COLUMN,
-      columnId: column.id,
+      layoutId: layoutId,
       rowId: rowId,
+      side: side,
     },
   });
 

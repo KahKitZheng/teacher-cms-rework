@@ -40,9 +40,11 @@ export default function InfoBlockActions(
           <Plus size={12} cursor="pointer" color={iconColor} />
         </button>
       )}
-      <button styleName="icon-btn" onClick={handleEdit}>
-        <Pencil size={12} cursor="pointer" color={iconColor} />
-      </button>
+      {handleEdit && (
+        <button styleName="icon-btn" onClick={handleEdit}>
+          <Pencil size={12} cursor="pointer" color={iconColor} />
+        </button>
+      )}
       <button styleName="icon-btn" onClick={handleDelete}>
         <Trash size={12} cursor="pointer" color={iconColor} />
       </button>

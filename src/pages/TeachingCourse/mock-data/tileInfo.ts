@@ -1,6 +1,8 @@
 const TILE_INFO_TEXT_DATA: TileInfoBlockText = {
-  id: 12312353462, // comply with ts first - overwrite later
   type: "text",
+  level: "tile", // Default level, should be overridden when used
+  id: 12312353462, // comply with ts first - overwrite later
+  order: 0, // Should be overridden when used
   name: "[Optioneel] Materialen",
   data: "",
   placeholder: {
@@ -9,8 +11,10 @@ const TILE_INFO_TEXT_DATA: TileInfoBlockText = {
 };
 
 const TILE_INFO_DROPDOWN_DATA: TileInfoBlockDropdown = {
-  id: 123123, // comply with ts first - overwrite later
   type: "dropdown",
+  level: "tile", // Default level, should be overridden when used
+  id: 123123, // comply with ts first - overwrite later
+  order: 0, // Should be overridden when used
   name: "Type",
   options: [
     {
@@ -101,58 +105,121 @@ export const tilesData: Tile[] = [
     coverImage: "",
     state: "open",
     type: "regular",
-    data: [
-      // rows
+    // Tile-level blocks (separated from rows)
+    blocks: [
       {
-        id: 1234234,
-        name: "Kennis",
-        icon: "pencil",
+        type: "text",
+        level: "tile",
+        id: 9876,
+        order: 0,
+        icon: { template: "pencil" },
+        name: "Direct text block",
+        data: "This is a block directly in the data array",
+      },
+    ],
+    // Rows (separated from blocks)
+    rows: [
+      // Row with column layout only
+      {
+        type: "row",
+        level: "tile",
+        id: 1234231234,
+        name: "Title 2762",
+        icon: "eye",
         order: 1,
-        columns: [
-          // columns
+        blocks: [], // No row-level blocks
+        layouts: [
           {
-            id: 13457,
-            order: 1,
-            blocks: [
+            type: "columnLayout",
+            level: "row",
+            id: 99913523459,
+            order: 0,
+            parentId: 1234231234,
+            leftColumn: [
               {
-                id: 1586,
                 type: "text",
+                level: "column",
+                id: 123345742,
+                order: 0,
+                parentId: 99913523459,
+                columnSide: "left",
                 icon: { template: "pencil" },
-                name: "Beschrijving kennis",
-                data: "test",
+                name: "Title 3456",
+                data: "Description",
+              },
+            ],
+            rightColumn: [
+              {
+                ...TILE_INFO_DROPDOWN_DATA,
+                level: "column",
+                id: 45678,
+                order: 0,
+                parentId: 99913523459,
+                columnSide: "right",
+                name: "Title 5687",
               },
             ],
           },
         ],
       },
+      // Row with both blocks and column layout
       {
-        id: 2463456,
-        name: "Verwerking",
-        icon: "pencil",
+        type: "row",
+        level: "tile",
+        id: 1234234,
+        name: "Title 3465",
+        icon: "eye",
         order: 2,
-        columns: [
-          // columns
+        blocks: [
           {
-            id: 2857,
-            order: 1,
-            blocks: [
-              {
-                ...TILE_INFO_TEXT_DATA,
-                id: 12342,
-              },
-            ],
+            type: "text",
+            level: "row",
+            id: 1586,
+            order: 0,
+            parentId: 1234234,
+            icon: { template: "pencil" },
+            name: "Title 1234",
+            data: "Description",
           },
+        ],
+        layouts: [
           {
-            id: 312341235,
-            order: 2,
-            blocks: [
+            type: "columnLayout",
+            level: "row",
+            id: 9999,
+            order: 1,
+            parentId: 1234234,
+            leftColumn: [
               {
-                ...TILE_INFO_TEXT_DATA,
-                id: 22346,
+                type: "text",
+                level: "column",
+                id: 12342,
+                order: 0,
+                parentId: 9999,
+                columnSide: "left",
+                icon: { template: "pencil" },
+                name: "Title 234",
+                data: "Description",
               },
               {
                 ...TILE_INFO_DROPDOWN_DATA,
+                level: "column",
+                id: 334573452345,
+                order: 1,
+                parentId: 9999,
+                columnSide: "right",
+                name: "Title 3465098",
+              },
+            ],
+            rightColumn: [
+              {
+                ...TILE_INFO_DROPDOWN_DATA,
+                level: "column",
                 id: 33457345,
+                order: 0,
+                parentId: 9999,
+                columnSide: "right",
+                name: "Title 3465",
               },
             ],
           },

@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import "./ElementPickerModal.module.scss";
 
-type ElementType = "row" | "text" | "dropdown";
+type ElementType = "row" | "text" | "dropdown" | "columnLayout";
 
 type ElementPickerModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (type: ElementType, options?: { columns?: 1 | 2 }) => void;
   mode: "add" | "edit";
-  allowedTypes?: ("row" | "text" | "dropdown")[];
+  allowedTypes?: ("row" | "text" | "dropdown" | "columnLayout")[];
   initialSelection?: {
     type: ElementType;
     options?: { columns?: 1 | 2 };
@@ -30,7 +30,7 @@ export default function ElementPickerModal(
     initialSelection,
   } = props;
 
-  const showLayoutTab = allowedTypes.includes("row");
+  const showLayoutTab = allowedTypes.includes("row") || allowedTypes.includes("columnLayout");
   const showBlocksTab =
     allowedTypes.includes("text") || allowedTypes.includes("dropdown");
 
@@ -46,7 +46,7 @@ export default function ElementPickerModal(
     if (isOpen) {
       // Set the correct tab based on initialSelection (if in edit mode)
       if (initialSelection) {
-        if (initialSelection.type === "row") {
+        if (initialSelection.type === "row" || initialSelection.type === "columnLayout") {
           setActiveTab("layout");
         } else if (
           initialSelection.type === "text" ||
@@ -74,8 +74,12 @@ export default function ElementPickerModal(
     } else if (mode === "add") {
       // Only auto-select the first available element when adding (not updating)
       if (activeTab === "layout" && showLayoutTab) {
-        // Select first row option (single column)
-        setSelectedElement({ type: "row", options: { columns: 1 } });
+        // Select first layout option
+        if (allowedTypes.includes("row")) {
+          setSelectedElement({ type: "row" });
+        } else if (allowedTypes.includes("columnLayout")) {
+          setSelectedElement({ type: "columnLayout" });
+        }
       } else if (activeTab === "blocks" && showBlocksTab) {
         // Select first available block type
         if (allowedTypes.includes("text")) {
@@ -147,52 +151,50 @@ export default function ElementPickerModal(
           <div styleName="elements-list">
             {activeTab === "layout" && showLayoutTab && (
               <>
-                <button
-                  styleName={`element-item ${
-                    selectedElement?.type === "row" &&
-                    selectedElement?.options?.columns === 1
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() => handleElementClick("row", { columns: 1 })}
-                >
-                  <div styleName="element-icon">
-                    <div styleName="layout-preview">
-                      <div styleName="layout-single"></div>
-                    </div>
-                  </div>
-                  <div styleName="element-info">
-                    <div styleName="element-name">Row (Single Column)</div>
-                    <div styleName="element-description">
-                      Add a row with one column
-                    </div>
-                  </div>
-                </button>
-
-                <button
-                  styleName={`element-item ${
-                    selectedElement?.type === "row" &&
-                    selectedElement?.options?.columns === 2
-                      ? "selected"
-                      : ""
-                  }`}
-                  onClick={() => handleElementClick("row", { columns: 2 })}
-                >
-                  <div styleName="element-icon">
-                    <div styleName="layout-preview">
-                      <div styleName="layout-double">
-                        <div styleName="layout-column"></div>
-                        <div styleName="layout-column"></div>
+                {allowedTypes.includes("row") && (
+                  <button
+                    styleName={`element-item ${
+                      selectedElement?.type === "row" ? "selected" : ""
+                    }`}
+                    onClick={() => handleElementClick("row")}
+                  >
+                    <div styleName="element-icon">
+                      <div styleName="layout-preview">
+                        <div styleName="layout-single"></div>
                       </div>
                     </div>
-                  </div>
-                  <div styleName="element-info">
-                    <div styleName="element-name">Row (Two Columns)</div>
-                    <div styleName="element-description">
-                      Add a row with two columns
+                    <div styleName="element-info">
+                      <div styleName="element-name">Row</div>
+                      <div styleName="element-description">
+                        Add a row container for blocks and layouts
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
+                )}
+
+                {allowedTypes.includes("columnLayout") && (
+                  <button
+                    styleName={`element-item ${
+                      selectedElement?.type === "columnLayout" ? "selected" : ""
+                    }`}
+                    onClick={() => handleElementClick("columnLayout")}
+                  >
+                    <div styleName="element-icon">
+                      <div styleName="layout-preview">
+                        <div styleName="layout-double">
+                          <div styleName="layout-column"></div>
+                          <div styleName="layout-column"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div styleName="element-info">
+                      <div styleName="element-name">2-Column Layout</div>
+                      <div styleName="element-description">
+                        Add a two-column layout inside a row
+                      </div>
+                    </div>
+                  </button>
+                )}
               </>
             )}
 
@@ -267,20 +269,18 @@ export default function ElementPickerModal(
 
         <div styleName="preview">
           <div styleName="preview-content">
-            {selectedElement?.type === "row" &&
-              selectedElement?.options?.columns === 1 && (
-                <div styleName="preview-row">
-                  <div styleName="preview-row-column full"></div>
-                </div>
-              )}
+            {selectedElement?.type === "row" && (
+              <div styleName="preview-row">
+                <div styleName="preview-row-column full"></div>
+              </div>
+            )}
 
-            {selectedElement?.type === "row" &&
-              selectedElement?.options?.columns === 2 && (
-                <div styleName="preview-row">
-                  <div styleName="preview-row-column half"></div>
-                  <div styleName="preview-row-column half"></div>
-                </div>
-              )}
+            {selectedElement?.type === "columnLayout" && (
+              <div styleName="preview-row">
+                <div styleName="preview-row-column half"></div>
+                <div styleName="preview-row-column half"></div>
+              </div>
+            )}
 
             {selectedElement?.type === "text" && (
               <div styleName="preview-block">

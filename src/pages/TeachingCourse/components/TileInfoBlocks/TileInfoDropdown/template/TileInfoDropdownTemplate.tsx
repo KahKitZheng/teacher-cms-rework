@@ -7,8 +7,10 @@ export type TileInfoDropdownTemplateProps = {
   variant: "template" | "edit" | "read";
   tileInfo: TileInfoBlockDropdown;
   activeBlockId?: number | null;
+  activeId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
+  level?: "tile" | "row" | "column"; // Hierarchy level for collision detection
   onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;
@@ -20,8 +22,10 @@ export default function TileInfoDropdownTemplate(
   const {
     tileInfo,
     activeBlockId,
+    activeId,
     hoveredBlockId,
     isDragOverlay,
+    level,
     onAddElement,
     onEditElement,
     onDeleteElement,
@@ -45,8 +49,10 @@ export default function TileInfoDropdownTemplate(
       title={dropdownData.name}
       blockId={tileInfo.id}
       activeBlockId={activeBlockId}
+      activeId={activeId}
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
+      level={level}
       actions={{
         // add: onAddElement,
         update: onEditElement,

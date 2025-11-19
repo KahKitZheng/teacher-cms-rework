@@ -6,12 +6,14 @@ import "./TileInfoRow.module.scss";
 import IconPicker from "src/components/IconPicker/IconPicker";
 import { ICONS } from "src/constants/icons";
 import { useSortable } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 import {
   getRowOpacity,
   getPointerEvents,
-  getDragOverlayStyles,
+  getRowDropZoneStyles,
 } from "../../utils/dragDropStyles";
+import { DRAG_STYLES } from "../../utils/dragDropConstants";
 
 type TileInfoRowProps = {
   tileInfoRow: TileInfoRow;
@@ -42,18 +44,46 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
   const {
     attributes,
     listeners,
-    setNodeRef,
+    setNodeRef: setSortableNodeRef,
     transform,
     transition,
     isDragging,
   } = useSortable({ id: tileInfoRow.id });
 
+  // Make row droppable for blocks to move into
+  // Use a special ID to distinguish from sortable row ID
+  const dropZoneId = `row-dropzone-${tileInfoRow.id}`;
+  const {
+    setNodeRef: setDroppableNodeRef,
+    isOver: isBlockOver,
+  } = useDroppable({
+    id: dropZoneId,
+    disabled: isDragOverlay || !activeBlockId,
+    data: {
+      type: "row-dropzone",
+      rowId: tileInfoRow.id,
+    },
+  });
+
+  // Set sortable ref on main container
+  const setNodeRef = setSortableNodeRef;
+
+  // Show visual feedback when a block is dragged over
+  const showDropFeedback = activeBlockId && isBlockOver;
+
   const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: getRowOpacity(isDragging, activeId, tileInfoRow.id),
+    transform: isDragOverlay ? undefined : CSS.Transform.toString(transform),
+    transition: isDragOverlay ? undefined : transition,
     pointerEvents: getPointerEvents(isDragging, activeBlockId, isDragOverlay),
-    ...getDragOverlayStyles(isDragOverlay),
+    ...(isDragOverlay && {
+      border: "1px solid var(--primary-color)",
+      borderRadius: "8px",
+    }),
+  };
+
+  const contentStyle = {
+    opacity: isDragOverlay ? 1 : getRowOpacity(isDragging, activeId, tileInfoRow.id, activeBlockId),
+    transition: `opacity ${DRAG_STYLES.TRANSITION}`,
   };
 
   return (
@@ -95,7 +125,7 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
       </div>
 
       {/* Content */}
-      <div styleName="header">
+      <div styleName="header" style={contentStyle}>
         <div styleName="iconAndName">
           <IconPicker icon={{ label: "Eye", value: "eye" }} icons={ICONS} />
           <input
@@ -113,7 +143,13 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
           cursor="pointer"
         />
       </div>
-      <div style={{ display: "flex", gap: "16px" }}>
+      <div
+        ref={setDroppableNodeRef}
+        style={{
+          ...getRowDropZoneStyles(activeBlockId, isBlockOver),
+          ...contentStyle,
+        }}
+      >
         {isCollapsed ? null : children}
       </div>
     </div>

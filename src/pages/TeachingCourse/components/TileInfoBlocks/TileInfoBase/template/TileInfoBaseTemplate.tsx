@@ -2,7 +2,7 @@ import "./TileInfoBaseTemplate.module.scss";
 import { useState } from "react";
 import DragHandle from "../../../DragHandle/DragHandle";
 import InfoBlockActions from "../../../InfoBlockActions/InfoBlockActions";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   getBlockContentOpacity,
@@ -16,8 +16,10 @@ type TileInfoBaseTemplateProps = {
   title: string;
   blockId: number;
   activeBlockId?: number | null;
+  activeId?: number | null; // For row drags
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
+  level?: "tile" | "row" | "column"; // Hierarchy level for collision detection
   actions?: {
     add?: () => void;
     update?: () => void;
@@ -33,53 +35,39 @@ export default function TileInfoBaseTemplate(
     actions,
     blockId,
     activeBlockId,
+    activeId,
     hoveredBlockId,
     isDragOverlay = false,
+    level = "tile",
   } = props;
 
   const [title, setTitle] = useState(props.title);
 
-  // Make block draggable (skip if drag overlay)
+  // Make block sortable (skip if drag overlay)
   const {
     attributes,
     listeners,
-    setNodeRef: setDraggableRef,
+    setNodeRef,
     transform,
+    transition,
     isDragging,
-  } = useDraggable({
+  } = useSortable({
     id: blockId,
     data: {
       type: "block",
       blockId: blockId,
+      level: level, // Add level for collision detection
     },
     disabled: isDragOverlay,
   });
-
-  // Make block droppable (for swapping, skip if drag overlay)
-  const { setNodeRef: setDroppableRef } = useDroppable({
-    id: `block-${blockId}`,
-    data: {
-      type: "block",
-      blockId: blockId,
-    },
-    disabled: isDragOverlay,
-  });
-
-  // Combine refs
-  const setNodeRef = (node: HTMLElement | null) => {
-    if (!isDragOverlay) {
-      setDraggableRef(node);
-      setDroppableRef(node);
-    }
-  };
 
   // Use cursor-based hover detection instead of dnd-kit's collision detection
   const isHovered = hoveredBlockId === blockId;
 
   const style = {
-    transform: isDragOverlay ? undefined : CSS.Translate.toString(transform),
+    transform: isDragOverlay ? undefined : CSS.Transform.toString(transform),
+    transition: isDragOverlay ? undefined : transition,
     pointerEvents: getPointerEvents(isDragging, activeBlockId, isDragOverlay),
-    transition: `outline ${DRAG_STYLES.TRANSITION}, background-color ${DRAG_STYLES.TRANSITION}`,
     width: "100%",
     minWidth: 0,
     ...getBlockDragStyles(activeBlockId, blockId, isHovered),
@@ -92,7 +80,7 @@ export default function TileInfoBaseTemplate(
   const contentStyle = {
     opacity: isDragOverlay
       ? 1
-      : getBlockContentOpacity(isDragging, activeBlockId, blockId, isHovered),
+      : getBlockContentOpacity(isDragging, activeBlockId, blockId, isHovered, activeId),
     transition: `opacity ${DRAG_STYLES.TRANSITION}`,
     display: "flex",
     flexDirection: "column" as const,
