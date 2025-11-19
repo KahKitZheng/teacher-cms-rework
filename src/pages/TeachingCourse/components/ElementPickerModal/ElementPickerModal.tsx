@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import "./ElementPickerModal.module.scss";
 
-type ElementType = "row" | "text" | "dropdown" | "columnLayout";
+type ElementType = "accordion" | "text" | "dropdown" | "columnLayout";
 
 type ElementPickerModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (type: ElementType, options?: { columns?: 1 | 2 }) => void;
   mode: "add" | "edit";
-  allowedTypes?: ("row" | "text" | "dropdown" | "columnLayout")[];
+  allowedTypes?: ("accordion" | "text" | "dropdown" | "columnLayout")[];
   initialSelection?: {
     type: ElementType;
     options?: { columns?: 1 | 2 };
@@ -26,11 +26,11 @@ export default function ElementPickerModal(
     onClose,
     onSelect,
     mode,
-    allowedTypes = ["row", "text", "dropdown"],
+    allowedTypes = ["accordion", "text", "dropdown"],
     initialSelection,
   } = props;
 
-  const showLayoutTab = allowedTypes.includes("row") || allowedTypes.includes("columnLayout");
+  const showLayoutTab = allowedTypes.includes("accordion") || allowedTypes.includes("columnLayout");
   const showBlocksTab =
     allowedTypes.includes("text") || allowedTypes.includes("dropdown");
 
@@ -46,7 +46,7 @@ export default function ElementPickerModal(
     if (isOpen) {
       // Set the correct tab based on initialSelection (if in edit mode)
       if (initialSelection) {
-        if (initialSelection.type === "row" || initialSelection.type === "columnLayout") {
+        if (initialSelection.type === "accordion" || initialSelection.type === "columnLayout") {
           setActiveTab("layout");
         } else if (
           initialSelection.type === "text" ||
@@ -75,8 +75,8 @@ export default function ElementPickerModal(
       // Only auto-select the first available element when adding (not updating)
       if (activeTab === "layout" && showLayoutTab) {
         // Select first layout option
-        if (allowedTypes.includes("row")) {
-          setSelectedElement({ type: "row" });
+        if (allowedTypes.includes("accordion")) {
+          setSelectedElement({ type: "accordion" });
         } else if (allowedTypes.includes("columnLayout")) {
           setSelectedElement({ type: "columnLayout" });
         }
@@ -151,12 +151,12 @@ export default function ElementPickerModal(
           <div styleName="elements-list">
             {activeTab === "layout" && showLayoutTab && (
               <>
-                {allowedTypes.includes("row") && (
+                {allowedTypes.includes("accordion") && (
                   <button
                     styleName={`element-item ${
-                      selectedElement?.type === "row" ? "selected" : ""
+                      selectedElement?.type === "accordion" ? "selected" : ""
                     }`}
-                    onClick={() => handleElementClick("row")}
+                    onClick={() => handleElementClick("accordion")}
                   >
                     <div styleName="element-icon">
                       <div styleName="layout-preview">
@@ -269,7 +269,7 @@ export default function ElementPickerModal(
 
         <div styleName="preview">
           <div styleName="preview-content">
-            {selectedElement?.type === "row" && (
+            {selectedElement?.type === "accordion" && (
               <div styleName="preview-row">
                 <div styleName="preview-row-column full"></div>
               </div>

@@ -34,37 +34,53 @@ type Tile = {
   // New fields
   type: "regular" | "contentMenu" | "test"; // or undefined 🤔?
   subName?: string;
-  blocks: TileInfoBlock[]; // Tile-level blocks (separated from rows)
-  rows: TileInfoRow[]; // Rows (separated from blocks)
+  children: TileInfoBlock[]; // Unified array for recursive nesting (includes accordion blocks)
   // workFormat: CMS_ENUMS<Workformat>[]; // enum stored in backend // maybe unused
 };
 
 /**
- * TILE_INFO
+ * TILE_INFO BLOCKS
  */
-type TileInfoRow = {
-  type: "row";
-  level: "tile";
+
+// Accordion/Collapse block - A container block that can hold other blocks (including nested accordions)
+type TileInfoBlockAccordion = {
+  type: "accordion";
+  level: number; // Dynamic level: 0 = tile level, 1+ = nested levels
   id: number;
   order: number;
-  icon: string;
-  name: string; // maybe tiptap - we need to decide if it's always just bold
-  blocks: TileInfoBlock[]; // Row-level blocks (separated from layouts)
-  layouts: TileInfoColumnLayout[]; // Column layouts (separated from blocks)
+  parentId?: number; // Optional: References parent accordion ID (undefined for tile-level)
+  icon?: string;
+  name: string; // Title/header of the accordion
+  children: TileInfoBlock[]; // Recursive: can contain any blocks including nested accordions!
 };
 
+// Column layout - A container for column blocks
 type TileInfoColumnLayout = {
   type: "columnLayout";
-  level: "row";
+  level: number; // Same level as parent accordion
   id: number;
   order: number;
-  parentId: number; // References row.id
-  leftColumn: TileInfoBlock[]; // Left column blocks
-  rightColumn: TileInfoBlock[]; // Right column blocks
+  parentId: number; // References parent accordion.id
+  children: TileInfoBlockColumn[]; // Contains column blocks (fully recursive!)
 };
 
+// Column block - A single column within a column layout
+type TileInfoBlockColumn = {
+  type: "column";
+  level: number; // Same level as parent layout
+  id: number;
+  order: number; // Used for column ordering (0 = first column, 1 = second, etc.)
+  parentId: number; // References parent columnLayout.id
+  width?: string; // Optional: CSS width/flex value (e.g., "1fr", "2fr", "300px")
+  children: TileInfoBlock[]; // Recursive: can contain any blocks including accordions!
+};
+
+// DEPRECATED: TileInfoRow is now TileInfoBlockAccordion
+// Kept for backwards compatibility during migration
+type TileInfoRow = TileInfoBlockAccordion;
+
 // DEPRECATED: TileInfoColumn is no longer used.
-// Column layouts now directly have leftColumn and rightColumn arrays.
+// Column layouts now use TileInfoBlockColumn children for fully recursive structure.
 // Kept for backwards compatibility during migration.
 type TileInfoColumn = {
   id: number;
@@ -74,10 +90,13 @@ type TileInfoColumn = {
 };
 
 type TileInfoBlock =
-  | TileInfoBlockHeading
-  | TileInfoBlockText // might be omitted if tiptap is used, then it's just `paragraph`
-  | TileInfoBlockParagraph
-  | TileInfoBlockDropdown; // single value and multi-select (tags)?
+  | TileInfoBlockAccordion  // Collapsible container block
+  | TileInfoColumnLayout    // Layout container for columns
+  | TileInfoBlockColumn     // Individual column block
+  | TileInfoBlockHeading    // Heading block
+  | TileInfoBlockText       // Text block (might be omitted if tiptap is used)
+  | TileInfoBlockParagraph  // Paragraph block (TipTap)
+  | TileInfoBlockDropdown;  // Dropdown/select block
 
 type TileInfoSelectOption = {
   label: string;
@@ -89,11 +108,10 @@ type TileInfoSelectOption = {
 
 type TileInfoBlockText = {
   type: "text";
-  level: "tile" | "row" | "column";
+  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
   id: number;
   order: number;
-  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
+  parentId?: number; // Optional: References parent container ID (undefined for tile-level)
   icon?: {
     template?: string;
     editor?: string;
@@ -106,11 +124,10 @@ type TileInfoBlockText = {
 
 type TileInfoBlockParagraph = {
   type: "paragraph";
-  level: "tile" | "row" | "column";
+  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
   id: number;
   order: number;
   parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   name: string;
   data: Record<string, unknown>; // TipTap for sure
   placeholder?: TileInfoPlaceholder;
@@ -118,11 +135,10 @@ type TileInfoBlockParagraph = {
 
 type TileInfoBlockDropdown = {
   type: "dropdown";
-  level: "tile" | "row" | "column";
+  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
   id: number;
   order: number;
   parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   name: string;
   placeholder?: TileInfoPlaceholder; // not used in template and editor, maybe only viewing?
   options: TileInfoSelectOption[];
@@ -131,11 +147,10 @@ type TileInfoBlockDropdown = {
 // TileInfo - Reusable object types
 type TileInfoBlockHeading = {
   type: "heading";
-  level: "tile" | "row" | "column";
+  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
   id: number;
   order: number;
   parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  columnSide?: "left" | "right"; // Optional: Only for column-level blocks
   icon?: string; // same for all types
   name: string;
 };

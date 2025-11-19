@@ -8,7 +8,7 @@ type TileInfoBlockProps = {
   activeId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
-  level?: "tile" | "row" | "column"; // Hierarchy level for collision detection
+  level?: "tile" | "accordion" | "column"; // Hierarchy level for collision detection
   onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;

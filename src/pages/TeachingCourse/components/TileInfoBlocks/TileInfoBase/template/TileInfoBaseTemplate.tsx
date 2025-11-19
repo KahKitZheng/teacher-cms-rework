@@ -19,7 +19,7 @@ type TileInfoBaseTemplateProps = {
   activeId?: number | null; // For row drags
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
-  level?: "tile" | "row" | "column"; // Hierarchy level for collision detection
+  level?: "tile" | "accordion" | "column"; // Hierarchy level for collision detection
   actions?: {
     add?: () => void;
     update?: () => void;

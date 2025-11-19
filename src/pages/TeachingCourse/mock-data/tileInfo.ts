@@ -1,6 +1,6 @@
-const TILE_INFO_TEXT_DATA: TileInfoBlockText = {
+const _TILE_INFO_TEXT_DATA: TileInfoBlockText = {
   type: "text",
-  level: "tile", // Default level, should be overridden when used
+  level: 0, // Default level, should be overridden when used
   id: 12312353462, // comply with ts first - overwrite later
   order: 0, // Should be overridden when used
   name: "[Optioneel] Materialen",
@@ -12,7 +12,7 @@ const TILE_INFO_TEXT_DATA: TileInfoBlockText = {
 
 const TILE_INFO_DROPDOWN_DATA: TileInfoBlockDropdown = {
   type: "dropdown",
-  level: "tile", // Default level, should be overridden when used
+  level: 0, // Default level, should be overridden when used
   id: 123123, // comply with ts first - overwrite later
   order: 0, // Should be overridden when used
   name: "Type",
@@ -105,75 +105,92 @@ export const tilesData: Tile[] = [
     coverImage: "",
     state: "open",
     type: "regular",
-    // Tile-level blocks (separated from rows)
-    blocks: [
+    // Unified children array with all blocks (including accordion blocks)
+    children: [
+      // Tile-level text block (level 0)
       {
         type: "text",
-        level: "tile",
+        level: 0,
         id: 9876,
         order: 0,
         icon: { template: "pencil" },
         name: "Direct text block",
-        data: "This is a block directly in the data array",
+        data: "This is a block directly at tile level",
       },
-    ],
-    // Rows (separated from blocks)
-    rows: [
-      // Row with column layout only
+      // First accordion block (level 0 = tile level)
       {
-        type: "row",
-        level: "tile",
+        type: "accordion",
+        level: 0,
         id: 1234231234,
         name: "Title 2762",
         icon: "eye",
         order: 1,
-        blocks: [], // No row-level blocks
-        layouts: [
+        children: [
+          // Column layout inside accordion
           {
             type: "columnLayout",
-            level: "row",
+            level: 0,
             id: 99913523459,
             order: 0,
             parentId: 1234231234,
-            leftColumn: [
+            children: [
+              // Left column block
               {
-                type: "text",
-                level: "column",
-                id: 123345742,
+                type: "column",
+                level: 0,
+                id: 999135234590,
                 order: 0,
                 parentId: 99913523459,
-                columnSide: "left",
-                icon: { template: "pencil" },
-                name: "Title 3456",
-                data: "Description",
+                width: "1fr",
+                children: [
+                  {
+                    type: "text",
+                    level: 0,
+                    id: 123345742,
+                    order: 0,
+                    parentId: 999135234590,
+                    icon: { template: "pencil" },
+                    name: "Title 3456",
+                    data: "Description",
+                  },
+                ],
               },
-            ],
-            rightColumn: [
+              // Right column block
               {
-                ...TILE_INFO_DROPDOWN_DATA,
-                level: "column",
-                id: 45678,
-                order: 0,
+                type: "column",
+                level: 0,
+                id: 999135234591,
+                order: 1,
                 parentId: 99913523459,
-                columnSide: "right",
-                name: "Title 5687",
+                width: "1fr",
+                children: [
+                  {
+                    ...TILE_INFO_DROPDOWN_DATA,
+                    level: 0,
+                    id: 45678,
+                    order: 0,
+                    parentId: 999135234591,
+                    name: "Title 5687",
+                  },
+                ],
               },
             ],
           },
         ],
       },
-      // Row with both blocks and column layout
+      // Second accordion block with blocks and column layout
       {
-        type: "row",
-        level: "tile",
+        type: "accordion",
+        level: 0,
         id: 1234234,
         name: "Title 3465",
         icon: "eye",
         order: 2,
-        blocks: [
+        children: [
+          // Accordion-level text block
           {
             type: "text",
-            level: "row",
+            level: 0,
             id: 1586,
             order: 0,
             parentId: 1234234,
@@ -181,45 +198,83 @@ export const tilesData: Tile[] = [
             name: "Title 1234",
             data: "Description",
           },
-        ],
-        layouts: [
+          // Column layout
           {
             type: "columnLayout",
-            level: "row",
+            level: 0,
             id: 9999,
             order: 1,
             parentId: 1234234,
-            leftColumn: [
+            children: [
+              // Left column block
               {
-                type: "text",
-                level: "column",
-                id: 12342,
+                type: "column",
+                level: 0,
+                id: 99990,
                 order: 0,
                 parentId: 9999,
-                columnSide: "left",
-                icon: { template: "pencil" },
-                name: "Title 234",
-                data: "Description",
+                width: "1fr",
+                children: [
+                  {
+                    type: "text",
+                    level: 0,
+                    id: 12342,
+                    order: 0,
+                    parentId: 99990,
+                    icon: { template: "pencil" },
+                    name: "Title 234",
+                    data: "Description",
+                  },
+                  {
+                    ...TILE_INFO_DROPDOWN_DATA,
+                    level: 0,
+                    id: 334573452345,
+                    order: 1,
+                    parentId: 99990,
+                    name: "Title 3465098",
+                  },
+                ],
               },
+              // Right column block
               {
-                ...TILE_INFO_DROPDOWN_DATA,
-                level: "column",
-                id: 334573452345,
+                type: "column",
+                level: 0,
+                id: 99991,
                 order: 1,
                 parentId: 9999,
-                columnSide: "right",
-                name: "Title 3465098",
+                width: "1fr",
+                children: [
+                  {
+                    ...TILE_INFO_DROPDOWN_DATA,
+                    level: 0,
+                    id: 33457345,
+                    order: 0,
+                    parentId: 99991,
+                    name: "Title 3465",
+                  },
+                ],
               },
             ],
-            rightColumn: [
+          },
+          // Example nested accordion (level 1) - demonstrates recursive nesting
+          {
+            type: "accordion",
+            level: 1,
+            id: 5555555,
+            name: "Nested Accordion Example",
+            icon: "folder",
+            order: 2,
+            parentId: 1234234,
+            children: [
               {
-                ...TILE_INFO_DROPDOWN_DATA,
-                level: "column",
-                id: 33457345,
+                type: "text",
+                level: 1,
+                id: 7777777,
                 order: 0,
-                parentId: 9999,
-                columnSide: "right",
-                name: "Title 3465",
+                parentId: 5555555,
+                icon: { template: "pencil" },
+                name: "Nested Block",
+                data: "This is nested inside another accordion",
               },
             ],
           },

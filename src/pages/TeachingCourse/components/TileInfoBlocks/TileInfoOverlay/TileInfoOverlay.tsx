@@ -15,7 +15,7 @@ type TileInfoOverlayProps = {
 /**
  * Type guard to check if an item is a TileInfoColumnLayout
  */
-function isTileInfoColumnLayout(
+function _isTileInfoColumnLayout(
   item: TileInfoBlock | TileInfoColumnLayout
 ): item is TileInfoColumnLayout {
   return (item as TileInfoColumnLayout).type === "columnLayout";
@@ -43,52 +43,72 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
           activeId={activeId}
           activeBlockId={activeBlockId}
         >
-          {[
-            ...activeRow.blocks.map((block) => ({ ...block, _itemType: 'block' as const })),
-            ...activeRow.layouts.map((layout) => ({ ...layout, _itemType: 'layout' as const })),
-          ]
+          {activeRow.children
             .sort((a, b) => a.order - b.order)
             .map((item) =>
-              item._itemType === 'layout' ? (
+              item.type === 'columnLayout' ? (
                 // Render column layout
                 <div key={item.id} style={{ display: "flex", gap: "16px", width: "100%" }}>
-                  {/* Left column */}
-                  <div
-                    style={{
-                      flex: "1",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "24px",
-                    }}
-                  >
-                    {item.leftColumn.map((block: TileInfoBlock) => (
-                      <TileInfoBlock
-                        key={block.id}
-                        block={block}
-                        variant="template"
-                        isDragOverlay={true}
-                      />
+                  {item.children
+                    .sort((a, b) => a.order - b.order)
+                    .map((column) => (
+                      <div
+                        key={column.id}
+                        style={{
+                          flex: column.width || "1",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "24px",
+                        }}
+                      >
+                        {column.children.map((block: TileInfoBlock) => (
+                          <TileInfoBlock
+                            key={block.id}
+                            block={block}
+                            variant="template"
+                            isDragOverlay={true}
+                          />
+                        ))}
+                      </div>
                     ))}
-                  </div>
-                  {/* Right column */}
-                  <div
-                    style={{
-                      flex: "1",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "24px",
-                    }}
-                  >
-                    {item.rightColumn.map((block: TileInfoBlock) => (
-                      <TileInfoBlock
-                        key={block.id}
-                        block={block}
-                        variant="template"
-                        isDragOverlay={true}
-                      />
-                    ))}
-                  </div>
                 </div>
+              ) : item.type === 'accordion' ? (
+                // Render nested row
+                <TileInfoRow
+                  key={item.id}
+                  tileInfoRow={item}
+                  isDragOverlay={true}
+                  activeId={activeId}
+                  activeBlockId={activeBlockId}
+                >
+                  {item.children
+                    .sort((a, b) => a.order - b.order)
+                    .map((nestedItem) =>
+                      nestedItem.type === 'columnLayout' ? (
+                        <div key={nestedItem.id} style={{ display: "flex", gap: "16px", width: "100%" }}>
+                          {nestedItem.children
+                            .sort((a, b) => a.order - b.order)
+                            .map((column) => (
+                              <div
+                                key={column.id}
+                                style={{
+                                  flex: column.width || "1",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: "24px"
+                                }}
+                              >
+                                {column.children.map((block: TileInfoBlock) => (
+                                  <TileInfoBlock key={block.id} block={block} variant="template" isDragOverlay={true} />
+                                ))}
+                              </div>
+                            ))}
+                        </div>
+                      ) : nestedItem.type !== 'accordion' ? (
+                        <TileInfoBlock key={nestedItem.id} block={nestedItem} variant="template" isDragOverlay={true} />
+                      ) : null
+                    )}
+                </TileInfoRow>
               ) : (
                 // Render direct block
                 <TileInfoBlock
@@ -119,46 +139,30 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
           activeLayoutId={activeLayoutId}
           isDragOverlay={true}
         >
-          {/* Left column */}
-          <div
-            style={{
-              flex: "1",
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-              minHeight: "100px",
-              borderRadius: "8px",
-            }}
-          >
-            {activeLayout.leftColumn.map((block) => (
-              <TileInfoBlock
-                key={block.id}
-                block={block}
-                variant="template"
-                isDragOverlay={true}
-              />
+          {activeLayout.children
+            .sort((a, b) => a.order - b.order)
+            .map((column) => (
+              <div
+                key={column.id}
+                style={{
+                  flex: column.width || "1",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "24px",
+                  minHeight: "100px",
+                  borderRadius: "8px",
+                }}
+              >
+                {column.children.map((block) => (
+                  <TileInfoBlock
+                    key={block.id}
+                    block={block}
+                    variant="template"
+                    isDragOverlay={true}
+                  />
+                ))}
+              </div>
             ))}
-          </div>
-          {/* Right column */}
-          <div
-            style={{
-              flex: "1",
-              display: "flex",
-              flexDirection: "column",
-              gap: "24px",
-              minHeight: "100px",
-              borderRadius: "8px",
-            }}
-          >
-            {activeLayout.rightColumn.map((block) => (
-              <TileInfoBlock
-                key={block.id}
-                block={block}
-                variant="template"
-                isDragOverlay={true}
-              />
-            ))}
-          </div>
         </SortableColumnLayout>
       </div>
     );

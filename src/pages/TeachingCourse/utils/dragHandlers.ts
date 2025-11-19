@@ -5,7 +5,6 @@ import {
   findBlockById,
   parseColumnId,
   findColumnByIds,
-  swapBlocks,
   moveBlockToColumn,
   moveBlockToRow,
   cloneTiles,
@@ -13,16 +12,26 @@ import {
 
 /**
  * Check if an ID belongs to a column layout
- * Works with separated arrays: row.layouts
+ * Works with unified children arrays (recursively)
  */
 function isColumnLayoutId(id: number, tiles: Tile[]): boolean {
-  for (const tile of tiles) {
-    for (const row of tile.rows) {
-      for (const layout of row.layouts) {
-        if (layout.id === id) {
+  function searchInChildren(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+    for (const child of children) {
+      if (child.type === "columnLayout" && child.id === id) {
+        return true;
+      }
+      if (child.type === "accordion") {
+        if (searchInChildren(child.children)) {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  for (const tile of tiles) {
+    if (searchInChildren(tile.children)) {
+      return true;
     }
   }
   return false;
@@ -81,7 +90,7 @@ export function handleDragStart(
 
 /**
  * Handle drag end event for row reordering
- * Works with separated arrays: rows can sort with tile-level blocks
+ * Works with unified children array: rows can sort with tile-level blocks
  */
 export function handleRowDragEnd(
   event: DragEndEvent,
@@ -96,29 +105,27 @@ export function handleRowDragEnd(
   const updatedTiles = cloneTiles(tiles);
   const tile = updatedTiles[0];
 
-  // Combine blocks and rows for sorting (with temp markers)
-  const combined = [
-    ...tile.blocks.map((block, idx) => ({ item: block, type: 'block' as const, idx })),
-    ...tile.rows.map((row, idx) => ({ item: row, type: 'row' as const, idx })),
-  ].sort((a, b) => a.item.order - b.item.order);
+  // Sort children by order
+  const sorted = [...tile.children].sort((a, b) => a.order - b.order);
 
-  // Find old and new positions in combined array
-  const oldIndex = combined.findIndex((entry) => entry.item.id === active.id);
-  const newIndex = combined.findIndex((entry) => entry.item.id === over.id);
+  // Find old and new positions
+  const oldIndex = sorted.findIndex((item) => item.id === active.id);
+  const newIndex = sorted.findIndex((item) => item.id === over.id);
 
   if (oldIndex === -1 || newIndex === -1) {
     return null;
   }
 
-  // Reorder the combined array
-  const reordered = arrayMove(combined, oldIndex, newIndex);
+  // Reorder the sorted array
+  const reordered = arrayMove(sorted, oldIndex, newIndex);
 
   // Update order fields
-  reordered.forEach((entry, idx) => {
-    entry.item.order = idx;
+  reordered.forEach((item, idx) => {
+    item.order = idx;
   });
 
-  // No need to separate back - arrays are already updated by reference
+  // Replace children with reordered array
+  tile.children = reordered;
 
   return updatedTiles;
 }
@@ -129,7 +136,7 @@ export function handleRowDragEnd(
 export function handleBlockDragEnd(
   event: DragEndEvent,
   tiles: Tile[],
-  hoveredBlockId: number | null,
+  _hoveredBlockId: number | null,
   hoveredColumnId: string | null
 ): Tile[] | null {
   const { active, over } = event;
@@ -177,23 +184,23 @@ export function handleBlockDragEnd(
     const updatedTiles = cloneTiles(tiles);
     const tile = updatedTiles[0];
 
-    // Combine blocks and rows for sorting
-    const combined = [
-      ...tile.blocks.map((block, idx) => ({ item: block, type: 'block' as const, idx })),
-      ...tile.rows.map((row, idx) => ({ item: row, type: 'row' as const, idx })),
-    ].sort((a, b) => a.item.order - b.item.order);
+    // Sort children by order
+    const sorted = [...tile.children].sort((a, b) => a.order - b.order);
 
-    const oldIndex = combined.findIndex((entry) => entry.item.id === active.id);
-    const newIndex = combined.findIndex((entry) => entry.item.id === over.id);
+    const oldIndex = sorted.findIndex((item) => item.id === active.id);
+    const newIndex = sorted.findIndex((item) => item.id === over.id);
 
     if (oldIndex !== -1 && newIndex !== -1) {
-      // Reorder the combined array
-      const reordered = arrayMove(combined, oldIndex, newIndex);
+      // Reorder array
+      const reordered = arrayMove(sorted, oldIndex, newIndex);
 
       // Update order fields
-      reordered.forEach((entry, idx) => {
-        entry.item.order = idx;
+      reordered.forEach((item, idx) => {
+        item.order = idx;
       });
+
+      // Replace children
+      tile.children = reordered;
 
       return updatedTiles;
     }
@@ -215,23 +222,23 @@ export function handleBlockDragEnd(
       const updatedTiles = cloneTiles(tiles);
       const tile = updatedTiles[0];
 
-      // Combine blocks and rows for sorting
-      const combined = [
-        ...tile.blocks.map((block, idx) => ({ item: block, type: 'block' as const, idx })),
-        ...tile.rows.map((row, idx) => ({ item: row, type: 'row' as const, idx })),
-      ].sort((a, b) => a.item.order - b.item.order);
+      // Sort children by order
+      const sorted = [...tile.children].sort((a, b) => a.order - b.order);
 
-      const oldIndex = combined.findIndex((entry) => entry.item.id === active.id);
-      const newIndex = combined.findIndex((entry) => entry.item.id === over.id);
+      const oldIndex = sorted.findIndex((item) => item.id === active.id);
+      const newIndex = sorted.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        // Reorder the combined array
-        const reordered = arrayMove(combined, oldIndex, newIndex);
+        // Reorder array
+        const reordered = arrayMove(sorted, oldIndex, newIndex);
 
         // Update order fields
-        reordered.forEach((entry, idx) => {
-          entry.item.order = idx;
+        reordered.forEach((item, idx) => {
+          item.order = idx;
         });
+
+        // Replace children
+        tile.children = reordered;
 
         return updatedTiles;
       }
@@ -249,25 +256,25 @@ export function handleBlockDragEnd(
     if (bothAtRowLevel) {
       // REORDER: Reorder blocks at row level
       const updatedTiles = cloneTiles(tiles);
-      const row = updatedTiles[sourceResult.location.tileIdx].rows[sourceResult.location.rowIdx];
+      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
 
-      // Combine blocks and layouts for sorting
-      const combined = [
-        ...row.blocks.map((block, idx) => ({ item: block, type: 'block' as const, idx })),
-        ...row.layouts.map((layout, idx) => ({ item: layout, type: 'layout' as const, idx })),
-      ].sort((a, b) => a.item.order - b.item.order);
+      // Sort children by order
+      const sorted = [...row.children].sort((a, b) => a.order - b.order);
 
-      const oldIndex = combined.findIndex((entry) => entry.item.id === active.id);
-      const newIndex = combined.findIndex((entry) => entry.item.id === over.id);
+      const oldIndex = sorted.findIndex((item) => item.id === active.id);
+      const newIndex = sorted.findIndex((item) => item.id === over.id);
 
       if (oldIndex !== -1 && newIndex !== -1) {
-        // Reorder the combined array
-        const reordered = arrayMove(combined, oldIndex, newIndex);
+        // Reorder array
+        const reordered = arrayMove(sorted, oldIndex, newIndex);
 
         // Update order fields
-        reordered.forEach((entry, idx) => {
-          entry.item.order = idx;
+        reordered.forEach((item, idx) => {
+          item.order = idx;
         });
+
+        // Replace children
+        row.children = reordered;
 
         return updatedTiles;
       }
@@ -284,22 +291,20 @@ export function handleBlockDragEnd(
     if (sameColumn) {
       // REORDER: Reorder blocks within the same column
       const updatedTiles = cloneTiles(tiles);
-      const row = updatedTiles[sourceResult.location.tileIdx].rows[sourceResult.location.rowIdx];
-      const layout = row.layouts[sourceResult.location.layoutIdx];
-      const column = sourceResult.location.colIdx === 0 ? layout.leftColumn : layout.rightColumn;
+      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
+      const layout = row.children[sourceResult.location.layoutIdx] as TileInfoColumnLayout;
+      const column = layout.children.find(col => col.order === sourceResult.location.colIdx);
+
+      if (!column || column.type !== "column") return null;
 
       const oldIndex = sourceResult.location.blockIdx;
       const newIndex = targetResult.location.blockIdx;
 
       // Use arrayMove to reorder
-      const reorderedColumn = arrayMove(column, oldIndex, newIndex);
+      const reorderedColumn = arrayMove(column.children, oldIndex, newIndex);
 
-      // Update the column reference
-      if (sourceResult.location.colIdx === 0) {
-        layout.leftColumn = reorderedColumn;
-      } else {
-        layout.rightColumn = reorderedColumn;
-      }
+      // Update column children
+      column.children = reorderedColumn;
 
       return updatedTiles;
     }
@@ -330,8 +335,11 @@ export function handleBlockDragEnd(
     let isSameRow = false;
 
     if (sourceIsInRow) {
-      const sourceRow = tiles[sourceResult.location.tileIdx].rows[sourceResult.location.rowIdx];
-      isSameRow = sourceRow.id === targetRowId;
+      // Find source row by using parentId from the block
+      const sourceBlock = sourceResult.block;
+      if (sourceBlock.parentId) {
+        isSameRow = sourceBlock.parentId === targetRowId;
+      }
     }
 
     if (!isSameRow) {
@@ -381,19 +389,33 @@ function swapBlockWithColumnLayout(
 ): Tile[] | null {
   const updatedTiles = cloneTiles(tiles);
 
-  // Find the row containing both the block and the layout
-  for (const tile of updatedTiles) {
-    for (const row of tile.rows) {
-      const block = row.blocks.find((b) => b.id === blockId);
-      const layout = row.layouts.find((l) => l.id === layoutId);
+  // Recursively search for the row containing both items
+  function searchAndSwap(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+    for (const child of children) {
+      if (child.type === "accordion") {
+        const block = child.children.find((item) => item.type !== "accordion" && item.type !== "columnLayout" && item.id === blockId);
+        const layout = child.children.find((item) => item.type === "columnLayout" && item.id === layoutId);
 
-      // If both are found in the same row, swap their order fields
-      if (block && layout) {
-        const tempOrder = block.order;
-        block.order = layout.order;
-        layout.order = tempOrder;
-        return updatedTiles;
+        // If both are found in the same row, swap their order fields
+        if (block && layout) {
+          const tempOrder = block.order;
+          block.order = layout.order;
+          layout.order = tempOrder;
+          return true;
+        }
+
+        // Recursively search in nested rows
+        if (searchAndSwap(child.children)) {
+          return true;
+        }
       }
+    }
+    return false;
+  }
+
+  for (const tile of updatedTiles) {
+    if (searchAndSwap(tile.children)) {
+      return updatedTiles;
     }
   }
 
@@ -423,37 +445,54 @@ export function handleLayoutDragEnd(
     return swapBlockWithColumnLayout(tiles, over.id as number, active.id as number);
   }
 
-  // Otherwise, reorder within the row using combined array approach
+  // Otherwise, reorder within the row using unified children approach
   const updatedTiles = cloneTiles(tiles);
 
-  for (const tile of updatedTiles) {
-    for (const row of tile.rows) {
-      // Check if this row contains the active layout
-      const hasActiveLayout = row.layouts.some(layout => layout.id === active.id);
+  // Recursively search for the row containing the layout
+  function searchAndReorder(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+    for (const child of children) {
+      if (child.type === "accordion") {
+        // Check if this row contains the active layout
+        const hasActiveLayout = child.children.some(
+          (item) => item.type === "columnLayout" && item.id === active.id
+        );
 
-      if (hasActiveLayout) {
-        // Combine blocks and layouts for sorting
-        const combined = [
-          ...row.blocks.map((block, idx) => ({ item: block, type: 'block' as const, idx })),
-          ...row.layouts.map((layout, idx) => ({ item: layout, type: 'layout' as const, idx })),
-        ].sort((a, b) => a.item.order - b.item.order);
+        if (hasActiveLayout) {
+          // Sort children by order
+          const sorted = [...child.children].sort((a, b) => a.order - b.order);
 
-        // Find old and new positions in combined array
-        const oldIndex = combined.findIndex((entry) => entry.item.id === active.id);
-        const newIndex = combined.findIndex((entry) => entry.item.id === over.id);
+          // Find old and new positions
+          const oldIndex = sorted.findIndex((item) => item.id === active.id);
+          const newIndex = sorted.findIndex((item) => item.id === over!.id);
 
-        if (oldIndex !== -1 && newIndex !== -1) {
-          // Reorder the combined array
-          const reordered = arrayMove(combined, oldIndex, newIndex);
+          if (oldIndex !== -1 && newIndex !== -1) {
+            // Reorder array
+            const reordered = arrayMove(sorted, oldIndex, newIndex);
 
-          // Update order fields
-          reordered.forEach((entry, idx) => {
-            entry.item.order = idx;
-          });
+            // Update order fields
+            reordered.forEach((item, idx) => {
+              item.order = idx;
+            });
 
-          return updatedTiles;
+            // Replace children
+            child.children = reordered;
+
+            return true;
+          }
+        }
+
+        // Recursively search in nested rows
+        if (searchAndReorder(child.children)) {
+          return true;
         }
       }
+    }
+    return false;
+  }
+
+  for (const tile of updatedTiles) {
+    if (searchAndReorder(tile.children)) {
+      return updatedTiles;
     }
   }
 

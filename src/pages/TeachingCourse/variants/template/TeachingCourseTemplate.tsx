@@ -3,6 +3,7 @@ import TileInfoBlock from "../../components/TileInfoBlocks/TileInfoBlock/TileInf
 import TileInfoOverlay from "../../components/TileInfoBlocks/TileInfoOverlay/TileInfoOverlay";
 import DroppableColumn from "../../components/DroppableColumn/DroppableColumn";
 import SortableColumnLayout from "../../components/SortableColumnLayout/SortableColumnLayout";
+import RecursiveAccordionRenderer from "../../components/RecursiveRowRenderer/RecursiveRowRenderer";
 import Button from "src/components/Button/Button";
 import { tilesData } from "../../mock-data/tileInfo";
 import { CircleQuestionMark, Plus } from "lucide-react";
@@ -50,13 +51,13 @@ export default function TeachingCourseTemplate() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [modalAllowedTypes, setModalAllowedTypes] = useState<
-    ("row" | "text" | "dropdown" | "columnLayout")[]
-  >(["row", "text", "dropdown"]);
+    ("accordion" | "text" | "dropdown" | "columnLayout")[]
+  >(["accordion", "text", "dropdown"]);
   const [targetRowId, setTargetRowId] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<number | null>(null);
   const [initialSelection, setInitialSelection] = useState<
     | {
-        type: "row" | "text" | "dropdown" | "columnLayout";
+        type: "accordion" | "text" | "dropdown" | "columnLayout";
         options?: { columns?: 1 | 2 };
       }
     | undefined
@@ -92,7 +93,7 @@ export default function TeachingCourseTemplate() {
 
   // Check if the active block is a tile-level block
   const isTileLevelBlock = activeBlockId
-    ? tileInfo[0].blocks.some(block => block.id === activeBlockId)
+    ? tileInfo[0].children.some(child => child.type !== "accordion" && child.id === activeBlockId)
     : false;
 
   function resetDragState() {
@@ -138,8 +139,8 @@ export default function TeachingCourseTemplate() {
 
   function handleOpenModal(
     mode: "add" | "edit",
-    allowedTypes: ("row" | "text" | "dropdown" | "columnLayout")[] = [
-      "row",
+    allowedTypes: ("accordion" | "text" | "dropdown" | "columnLayout")[] = [
+      "accordion",
       "text",
       "dropdown",
     ],
@@ -154,9 +155,9 @@ export default function TeachingCourseTemplate() {
     // Set initial selection for edit mode
     if (mode === "edit") {
       if (rowId !== null) {
-        // Editing a row - rows are now just containers
+        // Editing an accordion - accordions are now just containers
         setInitialSelection({
-          type: "row",
+          type: "accordion",
         });
       } else if (blockId !== null) {
         // Editing a block - find its type
@@ -182,9 +183,32 @@ export default function TeachingCourseTemplate() {
   function handleDeleteRow(rowId: number) {
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
+
+      // Recursively remove row from children
+      function removeRow(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+        return children.filter(child => {
+          if (child.type === "accordion" && child.id === rowId) {
+            return false; // Remove this row
+          }
+          if (child.type === "accordion") {
+            // Recursively search nested rows
+            return true;
+          }
+          return true;
+        }).map(child => {
+          if (child.type === "accordion") {
+            return {
+              ...child,
+              children: removeRow(child.children)
+            };
+          }
+          return child;
+        });
+      }
+
       updatedTiles[0] = {
         ...updatedTiles[0],
-        rows: updatedTiles[0].rows.filter((row) => row.id !== rowId),
+        children: removeRow(updatedTiles[0].children),
       };
       return updatedTiles;
     });
@@ -194,21 +218,37 @@ export default function TeachingCourseTemplate() {
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
 
-      // Remove from tile-level blocks
+      // Recursively remove block from all children and column layouts
+      function removeBlock(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+        return children.filter(child => {
+          // Remove if this is the block
+          if (child.type !== "accordion" && child.type !== "columnLayout" && child.id === blockId) {
+            return false;
+          }
+          return true;
+        }).map(child => {
+          if (child.type === "accordion") {
+            return {
+              ...child,
+              children: removeBlock(child.children)
+            };
+          }
+          if (child.type === "columnLayout") {
+            return {
+              ...child,
+              children: child.children.map(column => ({
+                ...column,
+                children: column.children.filter(block => block.id !== blockId),
+              })),
+            };
+          }
+          return child;
+        });
+      }
+
       updatedTiles[0] = {
         ...updatedTiles[0],
-        blocks: updatedTiles[0].blocks.filter((block) => block.id !== blockId),
-        rows: updatedTiles[0].rows.map((row) => ({
-          ...row,
-          // Remove from row-level blocks
-          blocks: row.blocks.filter((block) => block.id !== blockId),
-          // Remove from column layouts
-          layouts: row.layouts.map((layout) => ({
-            ...layout,
-            leftColumn: layout.leftColumn.filter((block) => block.id !== blockId),
-            rightColumn: layout.rightColumn.filter((block) => block.id !== blockId),
-          })),
-        })),
+        children: removeBlock(updatedTiles[0].children),
       };
 
       return updatedTiles;
@@ -219,13 +259,27 @@ export default function TeachingCourseTemplate() {
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
 
-      // Remove column layout from rows
+      // Recursively remove layout from row children
+      function removeLayout(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+        return children.filter(child => {
+          if (child.type === "columnLayout" && child.id === layoutId) {
+            return false; // Remove this layout
+          }
+          return true;
+        }).map(child => {
+          if (child.type === "accordion") {
+            return {
+              ...child,
+              children: removeLayout(child.children)
+            };
+          }
+          return child;
+        });
+      }
+
       updatedTiles[0] = {
         ...updatedTiles[0],
-        rows: updatedTiles[0].rows.map((row) => ({
-          ...row,
-          layouts: row.layouts.filter((layout) => layout.id !== layoutId),
-        })),
+        children: removeLayout(updatedTiles[0].children),
       };
 
       return updatedTiles;
@@ -236,18 +290,16 @@ export default function TeachingCourseTemplate() {
   function createBlock(
     blockId: number,
     type: "text" | "dropdown",
-    level: "tile" | "row" | "column",
+    level: number,
     order: number,
     name: string = "",
-    parentId?: number,
-    columnSide?: "left" | "right"
+    parentId?: number
   ): TileInfoBlock {
     const baseFields = {
       id: blockId,
       level,
       order,
       parentId,
-      columnSide,
     };
 
     if (type === "text") {
@@ -270,22 +322,21 @@ export default function TeachingCourseTemplate() {
 
   // Handle row selection (add or edit)
   function handleRowSelect() {
-    // Add new row (edit mode not supported for rows anymore)
-    const newRowId = +randomId();
-    const newRow: TileInfoRow = {
-      type: "row",
-      level: "tile",
-      id: newRowId,
-      order: tileInfo[0].blocks.length + tileInfo[0].rows.length, // Total count of tile-level items
+    // Add new accordion (edit mode not supported for accordions anymore)
+    const newAccordionId = +randomId();
+    const newAccordion: TileInfoBlockAccordion = {
+      type: "accordion",
+      level: 0, // Tile level = 0
+      id: newAccordionId,
+      order: tileInfo[0].children.length, // Total count of tile-level items
       icon: "eye",
       name: "",
-      blocks: [], // Start with empty blocks
-      layouts: [], // Start with empty layouts
+      children: [], // Start with empty children
     };
 
     setTileInfo((prev) => [{
       ...prev[0],
-      rows: [...prev[0].rows, newRow]
+      children: [...prev[0].children, newAccordion]
     }]);
     handleCloseModal();
   }
@@ -305,6 +356,11 @@ export default function TeachingCourseTemplate() {
         const { block: oldBlock, location } = blockResult;
         const tile = updatedTiles[location.tileIdx];
 
+        // Type guard: ensure oldBlock has a name property
+        if (!('name' in oldBlock)) {
+          return updatedTiles;
+        }
+
         // Create updated block with same properties but different type
         const updatedBlock = createBlock(
           oldBlock.id,
@@ -312,22 +368,26 @@ export default function TeachingCourseTemplate() {
           oldBlock.level,
           oldBlock.order,
           oldBlock.name,
-          oldBlock.parentId,
-          oldBlock.columnSide
+          oldBlock.parentId
         );
 
-        // Update block in the correct array
+        // Update block in the correct location
         if (location.rowIdx === -1) {
           // Tile-level block
-          tile.blocks[location.blockIdx] = updatedBlock;
-        } else if (location.layoutIdx === -1) {
-          // Row-level block
-          tile.rows[location.rowIdx].blocks[location.blockIdx] = updatedBlock;
+          tile.children[location.blockIdx] = updatedBlock;
         } else {
-          // Column-level block
-          const layout = tile.rows[location.rowIdx].layouts[location.layoutIdx];
-          const column = location.colIdx === 0 ? layout.leftColumn : layout.rightColumn;
-          column[location.blockIdx] = updatedBlock;
+          const row = tile.children[location.rowIdx] as TileInfoRow;
+          if (location.layoutIdx === -1) {
+            // Row-level block
+            row.children[location.blockIdx] = updatedBlock;
+          } else {
+            // Column-level block
+            const layout = row.children[location.layoutIdx] as TileInfoColumnLayout;
+            const column = layout.children.find(col => col.order === location.colIdx);
+            if (column && column.type === "column") {
+              column.children[location.blockIdx] = updatedBlock;
+            }
+          }
         }
 
         return updatedTiles;
@@ -341,30 +401,43 @@ export default function TeachingCourseTemplate() {
         const updatedTiles = [...prev];
         const tile = updatedTiles[0];
 
-        if (targetRowId !== null) {
-          // Add to specific row's blocks array
-          const targetRow = tile.rows.find((row) => row.id === targetRowId);
-          if (targetRow) {
-            const newBlock = createBlock(
-              newBlockId,
-              type,
-              "row",
-              targetRow.blocks.length + targetRow.layouts.length, // Order within row
-              "",
-              targetRowId
-            );
-            targetRow.blocks.push(newBlock);
+        // Recursively find and add to target row
+        function findAndAddToRow(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[], targetId: number): boolean {
+          for (const child of children) {
+            if (child.type === "accordion" && child.id === targetId) {
+              const newBlock = createBlock(
+                newBlockId,
+                type,
+                child.level, // Same level as parent row
+                child.children.length, // Order within row
+                "",
+                targetId
+              );
+              child.children.push(newBlock);
+              return true;
+            }
+            if (child.type === "accordion") {
+              if (findAndAddToRow(child.children, targetId)) {
+                return true;
+              }
+            }
           }
+          return false;
+        }
+
+        if (targetRowId !== null) {
+          // Add to specific row's children array
+          findAndAddToRow(tile.children, targetRowId);
         } else {
-          // Add as direct block to tile.blocks
+          // Add as direct block to tile children
           const newBlock = createBlock(
             newBlockId,
             type,
-            "tile",
-            tile.blocks.length + tile.rows.length, // Order within tile
+            0, // Tile level = 0
+            tile.children.length, // Order within tile
             ""
           );
-          tile.blocks.push(newBlock);
+          tile.children.push(newBlock);
         }
 
         return updatedTiles;
@@ -375,9 +448,9 @@ export default function TeachingCourseTemplate() {
 
   // Main handler for element selection
   function handleElementSelect(
-    type: "row" | "text" | "dropdown" | "columnLayout"
+    type: "accordion" | "text" | "dropdown" | "columnLayout"
   ) {
-    if (type === "row") {
+    if (type === "accordion") {
       handleRowSelect();
     } else if (type === "columnLayout") {
       handleColumnLayoutSelect();
@@ -394,23 +467,55 @@ export default function TeachingCourseTemplate() {
 
     setTileInfo((prev) => {
       const updatedTiles = [...prev];
-      const targetRow = updatedTiles[0].rows.find(
-        (row) => row.id === targetRowId
-      );
 
-      if (targetRow) {
-        const newColumnLayout: TileInfoColumnLayout = {
-          type: "columnLayout",
-          level: "row",
-          id: newLayoutId,
-          order: targetRow.blocks.length + targetRow.layouts.length,
-          parentId: targetRowId,
-          leftColumn: [],
-          rightColumn: [],
-        };
+      // Recursively find target row
+      function findAndAddLayout(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+        for (const child of children) {
+          if (child.type === "accordion" && child.id === targetRowId) {
+            const leftColumnId = +randomId();
+            const rightColumnId = +randomId();
 
-        targetRow.layouts.push(newColumnLayout);
+            const newColumnLayout: TileInfoColumnLayout = {
+              type: "columnLayout",
+              level: child.level,
+              id: newLayoutId,
+              order: child.children.length,
+              parentId: targetRowId,
+              children: [
+                {
+                  type: "column",
+                  level: child.level,
+                  id: leftColumnId,
+                  order: 0,
+                  parentId: newLayoutId,
+                  width: "1fr",
+                  children: [],
+                },
+                {
+                  type: "column",
+                  level: child.level,
+                  id: rightColumnId,
+                  order: 1,
+                  parentId: newLayoutId,
+                  width: "1fr",
+                  children: [],
+                },
+              ],
+            };
+
+            child.children.push(newColumnLayout);
+            return true;
+          }
+          if (child.type === "accordion") {
+            if (findAndAddLayout(child.children)) {
+              return true;
+            }
+          }
+        }
+        return false;
       }
+
+      findAndAddLayout(updatedTiles[0].children);
 
       return updatedTiles;
     });
@@ -473,10 +578,9 @@ export default function TeachingCourseTemplate() {
         >
           {/* Tile-level sortable context (blocks and rows) */}
           <SortableContext
-            items={tileInfo.flatMap((tile) => [
-              ...tile.blocks.map((block) => block.id),
-              ...tile.rows.map((row) => row.id),
-            ])}
+            items={tileInfo.flatMap((tile) =>
+              tile.children.map((child) => child.id)
+            )}
             strategy={verticalListSortingStrategy}
           >
             {tileInfo.map((tile) => (
@@ -488,14 +592,11 @@ export default function TeachingCourseTemplate() {
                     gap: "24px",
                   }}
                 >
-                  {/* Combine and sort blocks and rows by order */}
-                  {[
-                    ...tile.blocks.map((block) => ({ ...block, _itemType: 'block' as const })),
-                    ...tile.rows.map((row) => ({ ...row, _itemType: 'row' as const })),
-                  ]
+                  {/* Sort children by order */}
+                  {tile.children
                     .sort((a, b) => a.order - b.order)
                     .map((item) =>
-                      item._itemType === 'row' ? (
+                      item.type === 'accordion' ? (
                       <TileInfoRow
                         key={item.id}
                         tileInfoRow={item}
@@ -509,25 +610,19 @@ export default function TeachingCourseTemplate() {
                           )
                         }
                         onEditElement={() =>
-                          handleOpenModal("edit", ["row"], item.id)
+                          handleOpenModal("edit", ["accordion"], item.id)
                         }
                         onDeleteElement={() => handleDeleteRow(item.id)}
                       >
                         <SortableContext
-                          items={[
-                            ...item.blocks.map((block) => block.id),
-                            ...item.layouts.map((layout) => layout.id),
-                          ]}
+                          items={item.children.map((child) => child.id)}
                           strategy={verticalListSortingStrategy}
                         >
-                          {/* Combine and sort row blocks and layouts by order */}
-                          {[
-                            ...item.blocks.map((block) => ({ ...block, _itemType: 'block' as const })),
-                            ...item.layouts.map((layout) => ({ ...layout, _itemType: 'layout' as const })),
-                          ]
+                          {/* Sort row children by order */}
+                          {item.children
                             .sort((a, b) => a.order - b.order)
                             .map((rowItem) =>
-                              rowItem._itemType === 'layout' ? (
+                              rowItem.type === 'columnLayout' ? (
                                 // Render sortable 2-column layout
                                 <SortableColumnLayout
                                   key={rowItem.id}
@@ -539,81 +634,153 @@ export default function TeachingCourseTemplate() {
                                     handleDeleteColumnLayout(rowItem.id)
                                   }
                                 >
-                                  {/* Left column */}
-                                  <DroppableColumn
-                                    key={`${rowItem.id}-left`}
-                                    layoutId={rowItem.id}
-                                    rowId={item.id}
-                                    side="left"
-                                    activeBlockId={activeBlockId}
-                                    hoveredColumnId={hoveredColumnId}
-                                  >
-                                    <SortableContext
-                                      items={rowItem.leftColumn.map((b) => b.id)}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {rowItem.leftColumn.map((block) => (
-                                        <TileInfoBlock
-                                          key={block.id}
-                                          block={block}
-                                          variant="template"
-                                          activeBlockId={activeBlockId}
-                                          activeId={activeId}
-                                          hoveredBlockId={hoveredBlockId}
-                                          level="column"
-                                          onEditElement={() =>
-                                            handleOpenModal(
-                                              "edit",
-                                              ["text", "dropdown"],
-                                              null,
-                                              block.id
-                                            )
-                                          }
-                                          onDeleteElement={() =>
-                                            handleDeleteBlock(block.id)
-                                          }
-                                        />
-                                      ))}
-                                    </SortableContext>
-                                  </DroppableColumn>
-                                  {/* Right column */}
-                                  <DroppableColumn
-                                    key={`${rowItem.id}-right`}
-                                    layoutId={rowItem.id}
-                                    rowId={item.id}
-                                    side="right"
-                                    activeBlockId={activeBlockId}
-                                    hoveredColumnId={hoveredColumnId}
-                                  >
-                                    <SortableContext
-                                      items={rowItem.rightColumn.map((b) => b.id)}
-                                      strategy={verticalListSortingStrategy}
-                                    >
-                                      {rowItem.rightColumn.map((block) => (
-                                        <TileInfoBlock
-                                          key={block.id}
-                                          block={block}
-                                          variant="template"
-                                          activeBlockId={activeBlockId}
-                                          activeId={activeId}
-                                          hoveredBlockId={hoveredBlockId}
-                                          level="column"
-                                          onEditElement={() =>
-                                            handleOpenModal(
-                                              "edit",
-                                              ["text", "dropdown"],
-                                              null,
-                                              block.id
-                                            )
-                                          }
-                                          onDeleteElement={() =>
-                                            handleDeleteBlock(block.id)
-                                          }
-                                        />
-                                      ))}
-                                    </SortableContext>
-                                  </DroppableColumn>
+                                  {rowItem.children
+                                    .sort((a, b) => a.order - b.order)
+                                    .map((column) => (
+                                      <DroppableColumn
+                                        key={column.id}
+                                        layoutId={rowItem.id}
+                                        rowId={item.id}
+                                        side={column.order === 0 ? "left" : "right"}
+                                        activeBlockId={activeBlockId}
+                                        hoveredColumnId={hoveredColumnId}
+                                      >
+                                        <SortableContext
+                                          items={column.children.map((b) => b.id)}
+                                          strategy={verticalListSortingStrategy}
+                                        >
+                                          {column.children.map((block) => (
+                                            <TileInfoBlock
+                                              key={block.id}
+                                              block={block}
+                                              variant="template"
+                                              activeBlockId={activeBlockId}
+                                              activeId={activeId}
+                                              hoveredBlockId={hoveredBlockId}
+                                              level="column"
+                                              onEditElement={() =>
+                                                handleOpenModal(
+                                                  "edit",
+                                                  ["text", "dropdown"],
+                                                  null,
+                                                  block.id
+                                                )
+                                              }
+                                              onDeleteElement={() =>
+                                                handleDeleteBlock(block.id)
+                                              }
+                                            />
+                                          ))}
+                                        </SortableContext>
+                                      </DroppableColumn>
+                                    ))}
                                 </SortableColumnLayout>
+                              ) : rowItem.type === 'accordion' ? (
+                                // Render nested row (recursive)
+                                <TileInfoRow
+                                  key={rowItem.id}
+                                  tileInfoRow={rowItem}
+                                  activeId={activeId}
+                                  activeBlockId={activeBlockId}
+                                  onAddElement={() =>
+                                    handleOpenModal(
+                                      "add",
+                                      ["text", "dropdown", "columnLayout"],
+                                      rowItem.id
+                                    )
+                                  }
+                                  onEditElement={() =>
+                                    handleOpenModal("edit", ["accordion"], rowItem.id)
+                                  }
+                                  onDeleteElement={() => handleDeleteRow(rowItem.id)}
+                                >
+                                  <SortableContext
+                                    items={rowItem.children.map((child) => child.id)}
+                                    strategy={verticalListSortingStrategy}
+                                  >
+                                    {/* Recursively render nested row children */}
+                                    {rowItem.children
+                                      .sort((a, b) => a.order - b.order)
+                                      .map((nestedItem) =>
+                                        nestedItem.type === 'columnLayout' ? (
+                                          // Render column layout in nested row
+                                          <SortableColumnLayout
+                                            key={nestedItem.id}
+                                            columnLayout={nestedItem}
+                                            activeLayoutId={activeLayoutId}
+                                            activeId={activeId}
+                                            hoveredLayoutId={null}
+                                            onDeleteElement={() =>
+                                              handleDeleteColumnLayout(nestedItem.id)
+                                            }
+                                          >
+                                            {nestedItem.children
+                                              .sort((a, b) => a.order - b.order)
+                                              .map((column) => (
+                                                <DroppableColumn
+                                                  key={column.id}
+                                                  layoutId={nestedItem.id}
+                                                  rowId={rowItem.id}
+                                                  side={column.order === 0 ? "left" : "right"}
+                                                  activeBlockId={activeBlockId}
+                                                  hoveredColumnId={hoveredColumnId}
+                                                >
+                                                  <SortableContext
+                                                    items={column.children.map((b) => b.id)}
+                                                    strategy={verticalListSortingStrategy}
+                                                  >
+                                                    {column.children.map((block) => (
+                                                      <TileInfoBlock
+                                                        key={block.id}
+                                                        block={block}
+                                                        variant="template"
+                                                        activeBlockId={activeBlockId}
+                                                        activeId={activeId}
+                                                        hoveredBlockId={hoveredBlockId}
+                                                        level="column"
+                                                        onEditElement={() =>
+                                                          handleOpenModal(
+                                                            "edit",
+                                                            ["text", "dropdown"],
+                                                            null,
+                                                            block.id
+                                                          )
+                                                        }
+                                                        onDeleteElement={() =>
+                                                          handleDeleteBlock(block.id)
+                                                        }
+                                                      />
+                                                    ))}
+                                                  </SortableContext>
+                                                </DroppableColumn>
+                                              ))}
+                                          </SortableColumnLayout>
+                                        ) : nestedItem.type !== 'accordion' ? (
+                                          // Render block in nested row
+                                          <TileInfoBlock
+                                            key={nestedItem.id}
+                                            block={nestedItem}
+                                            variant="template"
+                                            activeBlockId={activeBlockId}
+                                            activeId={activeId}
+                                            hoveredBlockId={hoveredBlockId}
+                                            level="accordion"
+                                            onEditElement={() =>
+                                              handleOpenModal(
+                                                "edit",
+                                                ["text", "dropdown"],
+                                                null,
+                                                nestedItem.id
+                                              )
+                                            }
+                                            onDeleteElement={() =>
+                                              handleDeleteBlock(nestedItem.id)
+                                            }
+                                          />
+                                        ) : null
+                                      )}
+                                  </SortableContext>
+                                </TileInfoRow>
                               ) : (
                                 // Render direct block in row
                                 <TileInfoBlock
@@ -623,7 +790,7 @@ export default function TeachingCourseTemplate() {
                                   activeBlockId={activeBlockId}
                                   activeId={activeId}
                                   hoveredBlockId={hoveredBlockId}
-                                  level="row"
+                                  level="accordion"
                                   onEditElement={() =>
                                     handleOpenModal(
                                       "edit",
