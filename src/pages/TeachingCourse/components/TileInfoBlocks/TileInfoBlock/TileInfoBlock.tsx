@@ -1,5 +1,6 @@
 import TileInfoText from "../../TileInfoBlocks/TileInfoText";
 import TileInfoDropdown from "../../TileInfoBlocks/TileInfoDropdown/TileInfoDropdown";
+import TileInfoHeading from "../../TileInfoBlocks/TileInfoHeading/TileInfoHeading";
 
 type TileInfoBlockProps = {
   block: TileInfoBlock;
@@ -40,7 +41,6 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           hoveredBlockId={hoveredBlockId}
           isDragOverlay={isDragOverlay}
           level={level}
-          // onAddElement={onAddElement}
           onEditElement={onEditElement}
           onDeleteElement={onDeleteElement}
         />
@@ -56,7 +56,21 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
           hoveredBlockId={hoveredBlockId}
           isDragOverlay={isDragOverlay}
           level={level}
-          // onAddElement={onAddElement}
+          onEditElement={onEditElement}
+          onDeleteElement={onDeleteElement}
+        />
+      );
+    case "heading":
+      return (
+        <TileInfoHeading
+          key={block.id}
+          variant={variant}
+          tileInfo={block}
+          activeBlockId={activeBlockId}
+          activeId={activeId}
+          hoveredBlockId={hoveredBlockId}
+          isDragOverlay={isDragOverlay}
+          level={level}
           onEditElement={onEditElement}
           onDeleteElement={onDeleteElement}
         />

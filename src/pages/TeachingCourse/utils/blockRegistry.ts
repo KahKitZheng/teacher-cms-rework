@@ -1,0 +1,172 @@
+/**
+ * Block Registry - Single source of truth for block metadata
+ * Scales to unlimited block types without modifying multiple files
+ */
+
+type BlockCategory = 'container' | 'layout' | 'content';
+
+type BlockVariant = {
+  value: string;
+  label: string;
+  description?: string;
+  icon?: string;
+};
+
+type BlockMetadata = {
+  category: BlockCategory;
+  canHaveChildren: boolean;
+  canBeNested: boolean;
+  canBeInColumn: boolean;
+  canBeAtTileLevel: boolean;
+  displayName: string;
+  description?: string;
+  icon?: string;
+  variants?: BlockVariant[];
+};
+
+/**
+ * Registry of all block types and their metadata
+ * Add new block types here - all utilities update automatically
+ */
+export const BLOCK_REGISTRY = {
+  // Container blocks
+  accordion: {
+    category: 'container',
+    canHaveChildren: true,
+    canBeNested: true,
+    canBeInColumn: false,
+    canBeAtTileLevel: true,
+    displayName: 'Accordion',
+    description: 'Collapsible container for blocks and layouts',
+    icon: 'chevron-down',
+  },
+
+  // Layout blocks
+  columnLayout: {
+    category: 'layout',
+    canHaveChildren: true,
+    canBeNested: false,
+    canBeInColumn: false,
+    canBeAtTileLevel: false,
+    displayName: 'Column Layout',
+    description: 'Add a multi-column layout inside an accordion',
+    icon: 'columns',
+  },
+  column: {
+    category: 'layout',
+    canHaveChildren: true,
+    canBeNested: false,
+    canBeInColumn: false,
+    canBeAtTileLevel: false,
+    displayName: 'Column',
+    icon: 'rectangle-vertical',
+  },
+
+  // Content blocks
+  text: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Text Block',
+    description: 'Add a text input field',
+    icon: 'text',
+  },
+  heading: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Heading',
+    description: 'Add a heading or title',
+    icon: 'heading',
+    variants: [
+      { value: 'h1', label: 'Heading 1', description: 'Main page title' },
+      { value: 'h2', label: 'Heading 2', description: 'Section heading' },
+      { value: 'h3', label: 'Heading 3', description: 'Subsection heading' },
+      { value: 'h4', label: 'Heading 4', description: 'Minor heading' },
+    ],
+  },
+  dropdown: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Dropdown',
+    description: 'Add a dropdown select field',
+    icon: 'chevron-down',
+  },
+  paragraph: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Paragraph',
+    icon: 'align-left',
+  },
+
+  // Future blocks (commented examples):
+  // image: {
+  //   category: 'content',
+  //   canHaveChildren: false,
+  //   canBeNested: true,
+  //   canBeInColumn: true,
+  //   canBeAtTileLevel: true,
+  //   displayName: 'Image',
+  //   icon: 'image',
+  // },
+  // video: {
+  //   category: 'content',
+  //   canHaveChildren: false,
+  //   canBeNested: true,
+  //   canBeInColumn: true,
+  //   canBeAtTileLevel: true,
+  //   displayName: 'Video',
+  //   icon: 'video',
+  // },
+} as const satisfies Record<string, BlockMetadata>;
+
+export type BlockType = keyof typeof BLOCK_REGISTRY;
+
+/**
+ * Get metadata for a block type
+ */
+export function getBlockMetadata(type: string): BlockMetadata | undefined {
+  return BLOCK_REGISTRY[type as BlockType];
+}
+
+/**
+ * Check if block is a container (can hold other blocks)
+ */
+export function isContainer(block: TileInfoBlock): boolean {
+  const metadata = getBlockMetadata(block.type);
+  return metadata?.category === 'container';
+}
+
+/**
+ * Check if block is a content block (leaf node)
+ */
+export function isContentBlock(block: TileInfoBlock): boolean {
+  const metadata = getBlockMetadata(block.type);
+  return metadata?.category === 'content';
+}
+
+/**
+ * Check if block is a layout block
+ */
+export function isLayoutBlock(block: TileInfoBlock): boolean {
+  const metadata = getBlockMetadata(block.type);
+  return metadata?.category === 'layout';
+}
+
+/**
+ * Check if block can be placed in columns
+ */
+export function canBeInColumn(block: TileInfoBlock): boolean {
+  const metadata = getBlockMetadata(block.type);
+  return metadata?.canBeInColumn ?? false;
+}

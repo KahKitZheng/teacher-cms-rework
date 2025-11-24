@@ -3,6 +3,7 @@ import TileInfoRow from "../TileInfoRow/TileInfoRow";
 import TileInfoBlock from "../TileInfoBlocks/TileInfoBlock/TileInfoBlock";
 import SortableColumnLayout from "../SortableColumnLayout/SortableColumnLayout";
 import DroppableColumn from "../DroppableColumn/DroppableColumn";
+import { isLayoutBlock, isContainer } from "../../utils/blockRegistry";
 
 type RecursiveAccordionRendererProps = {
   accordion: TileInfoBlockAccordion;
@@ -12,6 +13,7 @@ type RecursiveAccordionRendererProps = {
   hoveredBlockId: number | null;
   hoveredColumnId: string | null;
   onAddElement: (accordionId: number) => void;
+  onAddBlockToLayout: (layoutId: number) => void;
   onEditAccordion: (accordionId: number) => void;
   onDeleteAccordion: (accordionId: number) => void;
   onEditBlock: (blockId: number) => void;
@@ -32,6 +34,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
     hoveredBlockId,
     hoveredColumnId,
     onAddElement,
+    onAddBlockToLayout,
     onEditAccordion,
     onDeleteAccordion,
     onEditBlock,
@@ -56,8 +59,8 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
         {accordion.children
           .sort((a, b) => a.order - b.order)
           .map((child) => {
-            // Column Layout
-            if (child.type === 'columnLayout') {
+            // Layout Block (Column Layout)
+            if (isLayoutBlock(child) && child.type === 'columnLayout') {
               return (
                 <SortableColumnLayout
                   key={child.id}
@@ -65,6 +68,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
                   activeLayoutId={activeLayoutId}
                   activeId={activeId}
                   hoveredLayoutId={null}
+                  onAddElement={() => onAddBlockToLayout(child.id)}
                   onDeleteElement={() => onDeleteColumnLayout(child.id)}
                 >
                   {child.children
@@ -74,7 +78,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
                         key={column.id}
                         layoutId={child.id}
                         rowId={accordion.id}
-                        side={column.order === 0 ? "left" : "right"}
+                        columnOrder={column.order}
                         activeBlockId={activeBlockId}
                         hoveredColumnId={hoveredColumnId}
                       >
@@ -102,8 +106,8 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
               );
             }
 
-            // Nested Accordion - RECURSIVE CALL
-            if (child.type === 'accordion') {
+            // Container Block (Nested Accordion) - RECURSIVE CALL
+            if (isContainer(child) && child.type === 'accordion') {
               return (
                 <RecursiveAccordionRenderer
                   key={child.id}
@@ -114,6 +118,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
                   hoveredBlockId={hoveredBlockId}
                   hoveredColumnId={hoveredColumnId}
                   onAddElement={onAddElement}
+                  onAddBlockToLayout={onAddBlockToLayout}
                   onEditAccordion={onEditAccordion}
                   onDeleteAccordion={onDeleteAccordion}
                   onEditBlock={onEditBlock}
@@ -123,7 +128,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
               );
             }
 
-            // Direct Block
+            // Content Block (text, heading, dropdown, etc.)
             return (
               <TileInfoBlock
                 key={child.id}

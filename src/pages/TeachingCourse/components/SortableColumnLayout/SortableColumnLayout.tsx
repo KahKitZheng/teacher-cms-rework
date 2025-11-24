@@ -17,6 +17,7 @@ type SortableColumnLayoutProps = {
   activeId?: number | null;
   hoveredLayoutId?: number | null;
   isDragOverlay?: boolean;
+  onAddElement?: () => void;
   onDeleteElement?: () => void;
 };
 
@@ -34,6 +35,7 @@ export default function SortableColumnLayout(
     activeId,
     hoveredLayoutId,
     isDragOverlay = false,
+    onAddElement,
     onDeleteElement,
   } = props;
 
@@ -115,6 +117,7 @@ export default function SortableColumnLayout(
       >
         <InfoBlockActions
           isDragOverlay={isDragOverlay}
+          handleAdd={onAddElement}
           handleDelete={onDeleteElement}
         />
       </div>

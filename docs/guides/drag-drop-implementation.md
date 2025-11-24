@@ -27,18 +27,35 @@ Tile (top-level container)
 
 ## Sorting Restrictions
 
-**Important**: Elements can **only sort with elements at the same hierarchical level**:
+**Important**: Elements can **only sort with elements at the same hierarchical level** AND **same category**:
 
 ### Three Hierarchical Levels:
 1. **Tile Level**: Rows and tile-level blocks can sort together
 2. **Row Level**: Row-level blocks and column layouts can sort together (in the same row)
 3. **Column Level**: Column blocks can only sort with other column blocks (in the same column)
 
+### Category-Based Restrictions (✨ NEW):
+Blocks are organized into three categories defined in the Block Registry:
+- **Containers**: Accordion (can hold other blocks)
+- **Layout**: Column Layout, Column (structural elements)
+- **Content**: Text, Heading, Dropdown, Paragraph (leaf nodes with data)
+
+**Restriction**: Blocks can only swap/reorder with blocks in the **same category**:
+- ✅ Accordion ↔ Accordion (container with container)
+- ✅ Text ↔ Heading ↔ Dropdown (content with content)
+- ❌ Accordion ↔ Text (container cannot swap with content)
+- ❌ Column Layout ↔ Text (layout cannot swap with content)
+
+**Why?** This prevents structural blocks (accordions, layouts) from accidentally swapping with data blocks (text, dropdowns), maintaining a clear separation of concerns.
+
+This restriction applies at **all hierarchical levels** (tile, row, and column).
+
 ### Summary:
-- ✅ **Tile level**: Rows ↔ Tile-level blocks (can sort together)
-- ✅ **Row level**: Row-level blocks ↔ Column layouts (can sort together, same row)
-- ✅ **Column level**: Column blocks ↔ Column blocks (same column only)
+- ✅ **Tile level**: Rows ↔ Tile-level blocks (can sort together, **same category only**)
+- ✅ **Row level**: Row-level blocks ↔ Column layouts (can sort together, same row, **same category only**)
+- ✅ **Column level**: Column blocks ↔ Column blocks (same column only, **same category only**)
 - ❌ **Cross-level**: No sorting between different levels (tile ↔ row ↔ column)
+- ❌ **Cross-category**: No sorting between different categories (container ↔ content ↔ layout)
 
 **Exception**: Blocks can be **moved between levels** via drop zones and hover detection (not sorting, just moving).
 
@@ -64,8 +81,9 @@ Tile (top-level container)
 - **Action**: Reorder at tile level (vertical only)
 - **Result**: Blocks swap positions in the tile's data array
 - **Visual**: Hovered block shows blue border and background highlight (only compatible blocks)
-- **Allowed**: ✅ Same level
+- **Allowed**: ✅ Same level, **same category**
 - **Movement**: Restricted to vertical axis
+- **Note**: Content blocks can only swap with other content blocks
 
 ### Tile-level Block → Row
 - **Action**: Reorder at tile level (vertical only)
@@ -87,7 +105,8 @@ Tile (top-level container)
 - **Action**: Reorder within row
 - **Result**: Blocks reorder within the row's items array
 - **Visual**: Drop indicator shows between blocks
-- **Allowed**: ✅ Same level, same row
+- **Allowed**: ✅ Same level, same row, **same category**
+- **Note**: Content blocks can only swap with other content blocks
 
 ### Row-level Block → Row-level Block (different row)
 - **Action**: Not allowed for sorting
@@ -149,7 +168,8 @@ Tile (top-level container)
 - **Action**: Reorder within column
 - **Result**: Blocks reorder within the same column's blocks array
 - **Visual**: Drop indicator shows between blocks
-- **Allowed**: ✅ Same level, same column
+- **Allowed**: ✅ Same level, same column, **same category**
+- **Note**: Only content blocks are allowed in columns, so all column blocks have the same category
 
 ### Column Block → Column Block (different column, same row)
 - **Action**: Not allowed (no cross-column sorting)
@@ -227,8 +247,25 @@ When dragging a **column layout**, the system checks:
 
 ## Implementation Files
 
-- **Drag Handlers**: `src/pages/TeachingCourse/utils/dragHandlers.ts`
-- **Collision Detection**: `src/pages/TeachingCourse/utils/collisionDetection.ts`
-- **Helper Functions**: `src/pages/TeachingCourse/utils/dragDropHelpers.ts`
-- **Row Component**: `src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx`
-- **Layout Component**: `src/pages/TeachingCourse/components/SortableColumnLayout/SortableColumnLayout.tsx`
+- **Block Registry**: `src/pages/TeachingCourse/utils/blockRegistry.ts` - Defines block categories and metadata
+- **Drag Handlers**: `src/pages/TeachingCourse/utils/dragHandlers.ts` - Implements category-based restrictions
+- **Collision Detection**: `src/pages/TeachingCourse/utils/collisionDetection.ts` - Custom collision algorithms
+- **Helper Functions**: `src/pages/TeachingCourse/utils/dragDropHelpers.ts` - Utility functions for data manipulation
+- **Row Component**: `src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx` - Accordion/row rendering
+- **Layout Component**: `src/pages/TeachingCourse/components/SortableColumnLayout/SortableColumnLayout.tsx` - Column layout rendering
+
+## Recent Changes
+
+### ✨ Category-Based Swap Restrictions (Latest)
+- Added `haveSameCategory()` function in `dragHandlers.ts` to enforce category restrictions
+- Blocks are now categorized as **container**, **layout**, or **content** via Block Registry
+- Containers can only swap with containers, content with content
+- Applied to all three reordering scenarios: tile-level, row-level, and column-level
+- Prevents accidental structural changes (e.g., swapping an accordion with a text block)
+
+### 🧹 Code Cleanup
+- Removed unused backup file `dragDropHelpers.ts.backup`
+- Removed unused type guards (`_isTileInfoRow`, `_isTileInfoColumnLayout`)
+- Removed unused functions (`swapBlocks`, `findRowById`, unused blockRegistry helpers)
+- Removed commented-out code and unused `TileInfoParagraph` component
+- Improved code maintainability by removing ~200 lines of dead code

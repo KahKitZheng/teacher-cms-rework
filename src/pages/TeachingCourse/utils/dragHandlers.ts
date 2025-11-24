@@ -9,6 +9,20 @@ import {
   moveBlockToRow,
   cloneTiles,
 } from "./dragDropHelpers";
+import { canBeInColumn, isContentBlock, isContainer, getBlockMetadata } from "./blockRegistry";
+
+/**
+ * Check if two blocks have the same category (both containers or both content)
+ * This enforces that containers can only swap with containers, and content with content
+ */
+function haveSameCategory(block1: TileInfoBlock, block2: TileInfoBlock): boolean {
+  const meta1 = getBlockMetadata(block1.type);
+  const meta2 = getBlockMetadata(block2.type);
+
+  if (!meta1 || !meta2) return false;
+
+  return meta1.category === meta2.category;
+}
 
 /**
  * Check if an ID belongs to a column layout
@@ -156,8 +170,8 @@ export function handleBlockDragEnd(
 
   // Prioritize hovered column over collision detection when available
   // This ensures empty columns can receive blocks even when other blocks are nearby
-  // But tile-level blocks CANNOT be moved into columns
-  if (hoveredColumnId && !isTileLevelBlock) {
+  // But only blocks that can be in columns should be allowed
+  if (hoveredColumnId && !isTileLevelBlock && canBeInColumn(sourceResult.block)) {
     const parsedColumnId = parseColumnId(hoveredColumnId);
     if (parsedColumnId) {
       const targetLocation = findColumnByIds(
@@ -218,6 +232,11 @@ export function handleBlockDragEnd(
       sourceResult.location.itemIdx === -1 && targetResult.location.itemIdx === -1;
 
     if (bothAtTileLevel) {
+      // Enforce category restriction: containers can only swap with containers, content with content
+      if (!haveSameCategory(sourceResult.block, targetResult.block)) {
+        return null;
+      }
+
       // REORDER: Reorder blocks at tile level
       const updatedTiles = cloneTiles(tiles);
       const tile = updatedTiles[0];
@@ -254,6 +273,11 @@ export function handleBlockDragEnd(
       sourceResult.location.rowIdx === targetResult.location.rowIdx;
 
     if (bothAtRowLevel) {
+      // Enforce category restriction: containers can only swap with containers, content with content
+      if (!haveSameCategory(sourceResult.block, targetResult.block)) {
+        return null;
+      }
+
       // REORDER: Reorder blocks at row level
       const updatedTiles = cloneTiles(tiles);
       const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
@@ -289,6 +313,11 @@ export function handleBlockDragEnd(
       sourceResult.location.colIdx !== -1; // Both are in column layouts
 
     if (sameColumn) {
+      // Enforce category restriction: containers can only swap with containers, content with content
+      if (!haveSameCategory(sourceResult.block, targetResult.block)) {
+        return null;
+      }
+
       // REORDER: Reorder blocks within the same column
       const updatedTiles = cloneTiles(tiles);
       const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
@@ -349,10 +378,15 @@ export function handleBlockDragEnd(
   }
 
   // Case 2: Dropping over a column (for moving to empty/different column)
-  // Tile-level blocks CANNOT be moved into columns
+  // Only content blocks can be moved into columns
   if (overType === "column") {
     // Prevent tile-level blocks from being moved into columns
     if (isTileLevelBlock) {
+      return null;
+    }
+
+    // Validate that this block type can be in columns
+    if (!canBeInColumn(sourceResult.block)) {
       return null;
     }
 
@@ -393,7 +427,7 @@ function swapBlockWithColumnLayout(
   function searchAndSwap(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
     for (const child of children) {
       if (child.type === "accordion") {
-        const block = child.children.find((item) => item.type !== "accordion" && item.type !== "columnLayout" && item.id === blockId);
+        const block = child.children.find((item) => isContentBlock(item) && item.id === blockId);
         const layout = child.children.find((item) => item.type === "columnLayout" && item.id === layoutId);
 
         // If both are found in the same row, swap their order fields

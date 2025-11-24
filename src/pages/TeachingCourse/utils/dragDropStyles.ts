@@ -138,20 +138,6 @@ export function getRowDropZoneStyles(
 }
 
 /**
- * Get drag overlay styles
- */
-export function getDragOverlayStyles(
-  isDragOverlay: boolean
-): React.CSSProperties {
-  if (!isDragOverlay) return {};
-
-  return {
-    border: "1px solid var(--primary-color)",
-    borderRadius: "8px",
-  };
-}
-
-/**
  * Get icon color based on drag overlay state
  */
 export function getIconColor(isDragOverlay: boolean): string {

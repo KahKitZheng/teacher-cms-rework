@@ -1,0 +1,21 @@
+.heading-input {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  border: none;
+  padding: 12px 16px;
+  width: 100%;
+  background: transparent;
+  font-family: inherit;
+
+  &:focus {
+    outline: none;
+    background: #f9fafb;
+    border-radius: 6px;
+  }
+
+  &::placeholder {
+    color: #9ca3af;
+    font-weight: 600;
+  }
+}

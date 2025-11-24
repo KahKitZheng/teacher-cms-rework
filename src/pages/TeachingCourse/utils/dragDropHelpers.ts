@@ -5,22 +5,6 @@
  */
 
 /**
- * Type guard to check if an item is a TileInfoRow
- */
-function _isTileInfoRow(item: TileInfoRow | TileInfoBlock | TileInfoColumnLayout): item is TileInfoRow {
-  return (item as TileInfoRow).type === "accordion";
-}
-
-/**
- * Type guard to check if an item is a TileInfoColumnLayout
- */
-function _isTileInfoColumnLayout(
-  item: TileInfoBlock | TileInfoColumnLayout | TileInfoRow
-): item is TileInfoColumnLayout {
-  return (item as TileInfoColumnLayout).type === "columnLayout";
-}
-
-/**
  * Helper function to get a column block by its order (colIdx)
  */
 function getColumnByOrder(layout: TileInfoColumnLayout, colIdx: number): TileInfoBlockColumn | undefined {
@@ -45,7 +29,7 @@ export type BlockLocation = {
   rowIdx: number; // Index in tile.children for parent row, or -1 if at tile level
   itemIdx: number; // Index in row.children for item, or -1 if at tile/column level
   layoutIdx: number; // Index in row.children for layout, or -1 if not in layout
-  colIdx: number; // 0 for left, 1 for right, or -1 if not in layout
+  colIdx: number; // Column order (0, 1, 2, 3, ...), or -1 if not in layout
   blockIdx: number; // Index in children array or column array
 };
 
@@ -56,7 +40,7 @@ export type ColumnLocation = {
   tileIdx: number;
   rowIdx: number; // Index in tile.children for parent row
   layoutIdx: number; // Index in row.children for the column layout
-  colIdx: number; // Column order: 0 for first column, 1 for second column
+  colIdx: number; // Column order: 0 for first column, 1 for second column, 2 for third, etc.
 };
 
 /**
@@ -78,8 +62,9 @@ export type RowSearchResult = {
 
 /**
  * Get all accordion IDs from tiles (recursively finds all nested accordions)
+ * Exported as getAllRowIds since accordions are rows
  */
-export function getAllAccordionIds(tiles: Tile[]): number[] {
+export function getAllRowIds(tiles: Tile[]): number[] {
   const accordionIds: number[] = [];
 
   function collectAccordionIds(children: TileInfoBlock[]) {
@@ -99,18 +84,12 @@ export function getAllAccordionIds(tiles: Tile[]): number[] {
   return accordionIds;
 }
 
-// Alias for backwards compatibility
-export const getAllRowIds = getAllAccordionIds;
-
 /**
- * Check if an ID belongs to an accordion block
+ * Check if an ID belongs to an accordion block (alias: isRowId)
  */
-export function isAccordionId(id: number, tiles: Tile[]): boolean {
-  return getAllAccordionIds(tiles).includes(id);
+export function isRowId(id: number, tiles: Tile[]): boolean {
+  return getAllRowIds(tiles).includes(id);
 }
-
-// Alias for backwards compatibility
-export const isRowId = isAccordionId;
 
 /**
  * Find a block by its ID across all tiles
@@ -208,50 +187,6 @@ export function findBlockById(
 }
 
 /**
- * Find a row by its ID across all tiles
- * Recursively searches through nested rows
- */
-export function findRowById(
-  tiles: Tile[],
-  rowId: number
-): RowSearchResult | null {
-  for (let tileIdx = 0; tileIdx < tiles.length; tileIdx++) {
-    const tile = tiles[tileIdx];
-
-    const result = searchInChildren(tile.children, tileIdx, -1);
-    if (result) return result;
-  }
-
-  return null;
-
-  function searchInChildren(
-    children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[],
-    tileIdx: number,
-    _parentRowIdx: number
-  ): RowSearchResult | null {
-    for (let childIdx = 0; childIdx < children.length; childIdx++) {
-      const child = children[childIdx];
-
-      if (child.type === "accordion") {
-        if (child.id === rowId) {
-          return {
-            row: child,
-            tileIdx,
-            rowIdx: childIdx
-          };
-        }
-
-        // Recursively search in nested rows
-        const result = searchInChildren(child.children, tileIdx, childIdx);
-        if (result) return result;
-      }
-    }
-
-    return null;
-  }
-}
-
-/**
  * Find a column layout by row ID, layout ID, and column index
  */
 export function findColumnByIds(
@@ -336,65 +271,6 @@ export function cloneTiles(tiles: Tile[]): Tile[] {
       }
     });
   }
-}
-
-/**
- * Swap two blocks at different locations
- */
-export function swapBlocks(
-  tiles: Tile[],
-  sourceLocation: BlockLocation,
-  targetLocation: BlockLocation
-): Tile[] {
-  const updatedTiles = cloneTiles(tiles);
-
-  // Get references to source and target arrays/blocks
-  const getBlockAndArray = (loc: BlockLocation): { block: TileInfoBlock; array: TileInfoBlock[] } | null => {
-    const tile = updatedTiles[loc.tileIdx];
-
-    // Tile level
-    if (loc.rowIdx === -1) {
-      const block = tile.children[loc.blockIdx];
-      if (isTileInfoBlock(block)) {
-        return { block, array: tile.children as TileInfoBlock[] };
-      }
-      return null;
-    }
-
-    // Row level or deeper
-    const row = tile.children[loc.rowIdx];
-    if (row.type !== "accordion") return null;
-
-    // Column level
-    if (loc.layoutIdx !== -1) {
-      const layout = row.children[loc.layoutIdx];
-      if (layout.type !== "columnLayout") return null;
-
-      const column = getColumnByOrder(layout, loc.colIdx);
-      if (!column) return null;
-      return { block: column.children[loc.blockIdx], array: column.children };
-    }
-
-    // Row level (not in column)
-    const block = row.children[loc.blockIdx];
-    if (isTileInfoBlock(block)) {
-      return { block, array: row.children as TileInfoBlock[] };
-    }
-
-    return null;
-  };
-
-  const source = getBlockAndArray(sourceLocation);
-  const target = getBlockAndArray(targetLocation);
-
-  if (!source || !target) return tiles;
-
-  // Swap order fields
-  const tempOrder = source.block.order;
-  source.block.order = target.block.order;
-  target.block.order = tempOrder;
-
-  return updatedTiles;
 }
 
 /**
@@ -650,19 +526,19 @@ export function getAllColumnLayouts(tiles: Tile[]): TileInfoColumnLayout[] {
 }
 
 /**
- * Parse column ID string (format: "column-{rowId}-{layoutId}-{side}")
+ * Parse column ID string (format: "column-{rowId}-{layoutId}-{columnOrder}")
  */
 export function parseColumnId(columnId: string): {
   rowId: number;
   layoutId: number;
   colIdx: number;
 } | null {
-  const match = columnId.match(/^column-(\d+)-(\d+)-(left|right)$/);
+  const match = columnId.match(/^column-(\d+)-(\d+)-(\d+)$/);
   if (!match) return null;
 
   return {
     rowId: parseInt(match[1], 10),
     layoutId: parseInt(match[2], 10),
-    colIdx: match[3] === "left" ? 0 : 1,
+    colIdx: parseInt(match[3], 10),
   };
 }

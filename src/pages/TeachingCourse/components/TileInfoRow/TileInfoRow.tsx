@@ -102,7 +102,6 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
         }}
       >
         <DragHandle
-          options={{ theme: "channel", borderStyle: "dashed" }}
           listeners={listeners}
           isDragOverlay={isDragOverlay}
         />
@@ -116,7 +115,6 @@ export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
         }}
       >
         <InfoBlockActions
-          options={{ theme: "channel", borderStyle: "dashed" }}
           isDragOverlay={isDragOverlay}
           handleAdd={onAddElement}
           handleEdit={onEditElement}

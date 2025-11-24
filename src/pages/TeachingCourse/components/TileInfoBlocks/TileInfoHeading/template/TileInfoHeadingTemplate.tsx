@@ -1,22 +1,21 @@
 import { ChangeEvent, useState } from "react";
 import TileInfoBaseTemplate from "../../TileInfoBase/template/TileInfoBaseTemplate";
-import "./TileInfoTextTemplate.module.scss";
+import "./TileInfoHeadingTemplate.module.scss";
 
-export type TileInfoTextTemplateProps = {
+export type TileInfoHeadingTemplateProps = {
   variant: "template";
-  tileInfo: TileInfoBlockText;
+  tileInfo: TileInfoBlockHeading;
   activeBlockId?: number | null;
   activeId?: number | null;
   hoveredBlockId?: number | null;
   isDragOverlay?: boolean;
   level?: "tile" | "accordion" | "column"; // Hierarchy level for collision detection
-  onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;
 };
 
-export default function TileInfoTextTemplate(
-  props: Readonly<TileInfoTextTemplateProps>
+export default function TileInfoHeadingTemplate(
+  props: Readonly<TileInfoHeadingTemplateProps>
 ) {
   const {
     tileInfo,
@@ -25,16 +24,14 @@ export default function TileInfoTextTemplate(
     hoveredBlockId,
     isDragOverlay,
     level,
-    onAddElement,
     onEditElement,
     onDeleteElement,
   } = props;
-  const textData = tileInfo;
 
-  const [text, setText] = useState(textData.data);
+  const [heading, setHeading] = useState(tileInfo.name);
 
-  function handleTextChange(event: ChangeEvent<HTMLInputElement>) {
-    setText(event.target.value);
+  function handleHeadingChange(event: ChangeEvent<HTMLInputElement>) {
+    setHeading(event.target.value);
   }
 
   return (
@@ -52,10 +49,11 @@ export default function TileInfoTextTemplate(
       }}
     >
       <input
+        styleName="heading-input"
         type="text"
-        placeholder="Description"
-        value={text}
-        onChange={handleTextChange}
+        placeholder="Enter heading..."
+        value={heading}
+        onChange={handleHeadingChange}
       />
     </TileInfoBaseTemplate>
   );
