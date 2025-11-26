@@ -1,12 +1,15 @@
 # ADR 0002: Plugin Architecture for Block Registry
 
-**Status:** Proposed
+**Status:** Updated (see note below)
 
 **Date:** 2025-01
 
 **Deciders:** Development Team
 
+**Update (2025-01):** The original "Lightweight" approach (no lazy loading) has been superseded by the lazy loading approach in [ADR 0009](0009-block-registry-factory.md). This ADR now documents the **metadata and feature gating** aspects, while ADR 0009 handles **component rendering and lazy loading**. Both work together: ADR 0002 defines WHAT blocks are available, ADR 0009 defines HOW they're rendered.
+
 **Related:**
+- [ADR 0009: Block Registry Factory Pattern](0009-block-registry-factory.md) - Component rendering with lazy loading
 - [Lightweight Plugin Architecture Guide](../guides/plugin-architecture-lightweight.md)
 - [Complete Plugin Architecture Guide](../guides/plugin-architecture-complete.md)
 
@@ -32,12 +35,16 @@ We need a scalable architecture that:
 
 ## Decision
 
-We will implement a **Lightweight Plugin Architecture** with these characteristics:
+We will implement a **Plugin Architecture with Lazy Loading** that combines:
+- **Metadata-driven registry** (this ADR) - Feature flags, variants, capabilities
+- **Lazy-loaded components** (ADR 0009) - Code splitting and performance
 
 ### Core Design
 
 ```typescript
 // Block Registry - Single source of truth
+import { lazy } from 'react';
+
 const BLOCK_REGISTRY = {
   heading: {
     category: 'content',
@@ -52,6 +59,9 @@ const BLOCK_REGISTRY = {
     canHaveChildren: false,
     canBeNested: true,
     canBeInColumn: true,
+
+    // Lazy-loaded component (ADR 0009)
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoHeading')),
 
     // Variant support
     variants: [
@@ -68,66 +78,46 @@ const BLOCK_REGISTRY = {
 
 1. **Metadata-driven**: All block configuration in a central registry
 2. **Page-load filtering**: Feature flags and roles determined at page load
-3. **Static components**: No runtime component loading (for simplicity)
+3. **Lazy-loaded components**: Components load on demand for performance (see ADR 0009)
 4. **Variant support**: Blocks can have multiple style/behavior variants
 
 ---
 
 ## Rationale
 
-### Why Lightweight vs Complete?
+### Why Plugin Architecture with Lazy Loading?
 
-We considered two approaches:
+After considering various approaches, we chose to combine metadata-driven architecture with lazy loading:
 
-#### Complete Plugin Architecture
-- Runtime component loading with `lazy()` and `Suspense`
-- Dynamic block registry initialization
-- Component factory functions
-- Factory pattern for block creation
+**Benefits:**
+- ✅ **Code splitting**: Only load blocks that are actually used (-60KB initial bundle)
+- ✅ **Feature gating**: Enable/disable blocks based on feature flags and roles
+- ✅ **Variant support**: Built-in support for block variations (H1, H2, H3, etc.)
+- ✅ **Single source of truth**: Metadata + components together in registry
+- ✅ **Auto-generated UI**: Element picker generates from registry metadata
+- ✅ **Plugin-friendly**: External blocks can register themselves
+- ✅ **Type safe**: Full TypeScript support
 
-**Pros:**
-- True code splitting (only load used blocks)
-- Runtime toggling of features
-- Most flexible
-
-**Cons:**
-- More complexity
-- Loading states to handle
-- Over-engineering for current needs
-
-#### Lightweight Plugin Architecture (CHOSEN)
-- Static imports, metadata-driven
-- Page-load feature determination
-- Simple registry filtering
-- Variant system built-in
-
-**Pros:**
-- Simple to implement
-- No loading states
-- Easier debugging
-- Sufficient for feature flags determined at page load
-- Built-in variant support
-
-**Cons:**
-- All block code in bundle
-- Can't toggle features at runtime
+**Trade-offs:**
+- ⚠️ **Loading states**: Need Suspense boundaries (acceptable complexity)
+- ⚠️ **Slightly more abstraction**: Registry lookup vs direct imports (worth it for maintainability)
 
 ### Why This Is Right for Us
 
-1. **Feature flags are page-load decisions**
+1. **Performance matters**
+   - With 10+ block types, lazy loading provides measurable benefits
+   - Students don't need template-building code
+   - Teachers don't need student view code
+
+2. **Feature flags are page-load decisions**
    - User's role doesn't change during session
    - Feature flags come from server on load
    - No need for runtime toggling
 
-2. **Bundle size not a concern yet**
-   - Current blocks are small
-   - Page loads fast enough
-   - Can migrate to complete version if needed
-
-3. **Simpler maintenance**
-   - Less abstraction
-   - Easier to debug
-   - Faster development
+3. **Scalable architecture**
+   - Easy to add new blocks (update registry only)
+   - Supports external plugins
+   - Handles variants elegantly
 
 ---
 
@@ -137,22 +127,24 @@ We considered two approaches:
 
 - ✅ **Single source of truth**: All block metadata in one place
 - ✅ **Type safe**: Full TypeScript support
+- ✅ **Code splitting**: Lazy loading reduces initial bundle (-60KB)
 - ✅ **Feature flags**: Easy to gate blocks by role or feature
 - ✅ **Variant system**: Built-in support for block variations (H1, H2, H3, etc.)
 - ✅ **Easy to extend**: Add new block by adding to registry
 - ✅ **Auto-generated UI**: Element picker generates from registry
 - ✅ **Simple testing**: Easy to test with different feature configurations
+- ✅ **Plugin-friendly**: External blocks can register themselves
 
 ### Negative
 
-- ⚠️ **All blocks in bundle**: No code splitting (acceptable trade-off)
+- ⚠️ **Loading states**: Need Suspense boundaries (~10 lines of code)
 - ⚠️ **No runtime toggling**: Features fixed at page load (matches requirements)
 - ⚠️ **Migration effort**: Need to refactor existing components
 
 ### Neutral
 
 - Registry must be initialized at app startup
-- Need to update both registry and component when adding blocks
+- Need to update registry when adding blocks (component in registry)
 
 ---
 
@@ -333,16 +325,31 @@ The registry structure remains the same, making migration straightforward.
 ### Keep Current Hard-coded Approach
 - **Rejected**: Doesn't scale, no feature gating
 
-### Complete Plugin Architecture with Lazy Loading
-- **Deferred**: Over-engineering for current needs, can migrate later
+### Lightweight (No Lazy Loading)
+- **Rejected**: Originally proposed but lazy loading benefits outweigh the minimal complexity cost
+- **See ADR 0009** for the component rendering implementation
 
 ### External Plugin System
 - **Rejected**: Too complex, blocks are core to the app
 
 ---
 
+## Implementation
+
+See [ADR 0009: Block Registry Factory Pattern](0009-block-registry-factory.md) for detailed implementation steps on:
+- Adding `component: lazy(...)` to registry
+- Creating `BlockSkeleton` loading component
+- Simplifying `TileInfoBlock` with registry lookup
+- Updating `ElementPickerModal` to use registry
+
+This ADR (0002) focuses on **WHAT blocks are available** (metadata, feature flags).
+ADR 0009 focuses on **HOW blocks are rendered** (lazy loading, factory pattern).
+
+---
+
 ## References
 
+- [ADR 0009: Block Registry Factory Pattern](0009-block-registry-factory.md) - Component rendering implementation
 - [Lightweight Plugin Architecture Implementation](../guides/plugin-architecture-lightweight.md)
 - [Complete Plugin Architecture (Future Reference)](../guides/plugin-architecture-complete.md)
 - [Block Variants Implementation Guide](../guides/variant-implementation-guide.md)

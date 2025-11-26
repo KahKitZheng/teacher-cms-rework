@@ -1,8 +1,5 @@
-import TileInfoRow from "../../components/TileInfoRow/TileInfoRow";
 import TileInfoBlock from "../../components/TileInfoBlocks/TileInfoBlock/TileInfoBlock";
 import TileInfoOverlay from "../../components/TileInfoBlocks/TileInfoOverlay/TileInfoOverlay";
-import DroppableColumn from "../../components/DroppableColumn/DroppableColumn";
-import SortableColumnLayout from "../../components/SortableColumnLayout/SortableColumnLayout";
 import RecursiveAccordionRenderer from "../../components/RecursiveRowRenderer/RecursiveRowRenderer";
 import Button from "src/components/Button/Button";
 import { tilesData } from "../../mock-data/tileInfo";
@@ -189,7 +186,7 @@ export default function TeachingCourseTemplate() {
       const updatedTiles = [...prev];
 
       // Recursively remove row from children
-      function removeRow(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+      function removeRow(children: TileInfoBlock[]): any[] {
         return children.filter(child => {
           if (child.type === "accordion" && child.id === rowId) {
             return false; // Remove this row
@@ -223,7 +220,7 @@ export default function TeachingCourseTemplate() {
       const updatedTiles = [...prev];
 
       // Recursively remove block from all children and column layouts
-      function removeBlock(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+      function removeBlock(children: TileInfoBlock[]): any[] {
         return children.filter(child => {
           // Remove if this is a content block with matching ID
           if (isContentBlock(child) && child.id === blockId) {
@@ -264,7 +261,7 @@ export default function TeachingCourseTemplate() {
       const updatedTiles = [...prev];
 
       // Recursively remove layout from row children
-      function removeLayout(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+      function removeLayout(children: TileInfoBlock[]): any[] {
         return children.filter(child => {
           if (child.type === "columnLayout" && child.id === layoutId) {
             return false; // Remove this layout
@@ -342,7 +339,7 @@ export default function TeachingCourseTemplate() {
 
       if (targetRowId !== null) {
         // Adding nested accordion inside an existing accordion
-        function findAndAddNestedAccordion(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[], targetId: number): boolean {
+        function findAndAddNestedAccordion(children: TileInfoBlock[], targetId: number): boolean {
           for (const child of children) {
             if (child.type === "accordion" && child.id === targetId) {
               const newAccordion: TileInfoBlockAccordion = {
@@ -422,7 +419,7 @@ export default function TeachingCourseTemplate() {
           // Tile-level block
           tile.children[location.blockIdx] = updatedBlock;
         } else {
-          const row = tile.children[location.rowIdx] as TileInfoRow;
+          const row = tile.children[location.rowIdx] as TileInfoBlockAccordion;
           if (location.layoutIdx === -1) {
             // Row-level block
             row.children[location.blockIdx] = updatedBlock;
@@ -448,7 +445,7 @@ export default function TeachingCourseTemplate() {
         const tile = updatedTiles[0];
 
         // Recursively find and add to target row
-        function findAndAddToRow(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[], targetId: number): boolean {
+        function findAndAddToRow(children: TileInfoBlock[], targetId: number): boolean {
           for (const child of children) {
             if (child.type === "accordion" && child.id === targetId) {
               const newBlock = createBlock(
@@ -473,7 +470,7 @@ export default function TeachingCourseTemplate() {
 
         if (targetLayoutId !== null) {
           // Add to column layout - find column with fewest blocks
-          function findAndAddToLayout(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+          function findAndAddToLayout(children: TileInfoBlock[]): boolean {
             for (const child of children) {
               if (child.type === "columnLayout" && child.id === targetLayoutId) {
                 // Find column with fewest blocks
@@ -547,7 +544,7 @@ export default function TeachingCourseTemplate() {
       const updatedTiles = [...prev];
 
       // Recursively find target row
-      function findAndAddLayout(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+      function findAndAddLayout(children: TileInfoBlock[]): boolean {
         for (const child of children) {
           if (child.type === "accordion" && child.id === targetRowId) {
             // Dynamically create N columns

@@ -1,0 +1,34 @@
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+.blockSkeleton {
+  padding: 1rem;
+  background-color: #f6f7f8;
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.skeletonHeader,
+.skeletonContent {
+  background: linear-gradient(to right, #eeeeee 8%, #dddddd 18%, #eeeeee 33%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 4px;
+}
+
+.skeletonHeader {
+  height: 20px;
+  width: 40%;
+  margin-bottom: 0.75rem;
+}
+
+.skeletonContent {
+  height: 16px;
+  width: 100%;
+}

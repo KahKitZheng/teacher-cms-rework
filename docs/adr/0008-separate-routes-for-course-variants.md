@@ -1,8 +1,10 @@
 # ADR 0008: Separate Routes for Course Variants
 
-**Status:** Proposed
+**Status:** Implemented ✅
 
 **Date:** 2025-01
+
+**Implementation Date:** 2025-01-24
 
 **Deciders:** Development Team
 

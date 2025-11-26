@@ -1,6 +1,6 @@
-import TileInfoText from "../../TileInfoBlocks/TileInfoText";
-import TileInfoDropdown from "../../TileInfoBlocks/TileInfoDropdown/TileInfoDropdown";
-import TileInfoHeading from "../../TileInfoBlocks/TileInfoHeading/TileInfoHeading";
+import { Suspense } from 'react';
+import { getBlockComponent } from '../../../utils/blockRegistry';
+import BlockSkeleton from './BlockSkeleton';
 
 type TileInfoBlockProps = {
   block: TileInfoBlock;
@@ -29,53 +29,31 @@ export default function TileInfoBlock(props: Readonly<TileInfoBlockProps>) {
     onDeleteElement,
   } = props;
 
-  switch (block.type) {
-    case "text":
-      return (
-        <TileInfoText
-          key={block.id}
-          variant={variant}
-          tileInfo={block}
-          activeBlockId={activeBlockId}
-          activeId={activeId}
-          hoveredBlockId={hoveredBlockId}
-          isDragOverlay={isDragOverlay}
-          level={level}
-          onEditElement={onEditElement}
-          onDeleteElement={onDeleteElement}
-        />
-      );
-    case "dropdown":
-      return (
-        <TileInfoDropdown
-          key={block.id}
-          variant={variant}
-          tileInfo={block}
-          activeBlockId={activeBlockId}
-          activeId={activeId}
-          hoveredBlockId={hoveredBlockId}
-          isDragOverlay={isDragOverlay}
-          level={level}
-          onEditElement={onEditElement}
-          onDeleteElement={onDeleteElement}
-        />
-      );
-    case "heading":
-      return (
-        <TileInfoHeading
-          key={block.id}
-          variant={variant}
-          tileInfo={block}
-          activeBlockId={activeBlockId}
-          activeId={activeId}
-          hoveredBlockId={hoveredBlockId}
-          isDragOverlay={isDragOverlay}
-          level={level}
-          onEditElement={onEditElement}
-          onDeleteElement={onDeleteElement}
-        />
-      );
-    default:
-      return null;
+  const Component = getBlockComponent(block.type);
+
+  if (!Component) {
+    return (
+      <div style={{ color: 'red', padding: '1rem' }}>
+        Unknown block type: {block.type}
+      </div>
+    );
   }
+
+  return (
+    <Suspense fallback={<BlockSkeleton />}>
+      <Component
+        key={block.id}
+        variant={variant}
+        tileInfo={block}
+        activeBlockId={activeBlockId}
+        activeId={activeId}
+        hoveredBlockId={hoveredBlockId}
+        isDragOverlay={isDragOverlay}
+        level={level}
+        onAddElement={onAddElement}
+        onEditElement={onEditElement}
+        onDeleteElement={onDeleteElement}
+      />
+    </Suspense>
+  );
 }

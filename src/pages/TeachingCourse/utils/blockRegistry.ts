@@ -3,6 +3,8 @@
  * Scales to unlimited block types without modifying multiple files
  */
 
+import { lazy, ComponentType } from 'react';
+
 type BlockCategory = 'container' | 'layout' | 'content';
 
 type BlockVariant = {
@@ -22,6 +24,7 @@ type BlockMetadata = {
   description?: string;
   icon?: string;
   variants?: BlockVariant[];
+  component: ComponentType<any>; // Lazy-loaded component
 };
 
 /**
@@ -39,6 +42,7 @@ export const BLOCK_REGISTRY = {
     displayName: 'Accordion',
     description: 'Collapsible container for blocks and layouts',
     icon: 'chevron-down',
+    component: lazy(() => import('../components/TileInfoRow/TileInfoRow')),
   },
 
   // Layout blocks
@@ -51,6 +55,7 @@ export const BLOCK_REGISTRY = {
     displayName: 'Column Layout',
     description: 'Add a multi-column layout inside an accordion',
     icon: 'columns',
+    component: lazy(() => import('../components/SortableColumnLayout/SortableColumnLayout')),
   },
   column: {
     category: 'layout',
@@ -60,6 +65,7 @@ export const BLOCK_REGISTRY = {
     canBeAtTileLevel: false,
     displayName: 'Column',
     icon: 'rectangle-vertical',
+    component: lazy(() => import('../components/DroppableColumn/DroppableColumn')),
   },
 
   // Content blocks
@@ -72,6 +78,7 @@ export const BLOCK_REGISTRY = {
     displayName: 'Text Block',
     description: 'Add a text input field',
     icon: 'text',
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoText/TileInfoText')),
   },
   heading: {
     category: 'content',
@@ -88,6 +95,7 @@ export const BLOCK_REGISTRY = {
       { value: 'h3', label: 'Heading 3', description: 'Subsection heading' },
       { value: 'h4', label: 'Heading 4', description: 'Minor heading' },
     ],
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoHeading/TileInfoHeading')),
   },
   dropdown: {
     category: 'content',
@@ -98,6 +106,7 @@ export const BLOCK_REGISTRY = {
     displayName: 'Dropdown',
     description: 'Add a dropdown select field',
     icon: 'chevron-down',
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoDropdown/TileInfoDropdown')),
   },
   paragraph: {
     category: 'content',
@@ -107,6 +116,7 @@ export const BLOCK_REGISTRY = {
     canBeAtTileLevel: true,
     displayName: 'Paragraph',
     icon: 'align-left',
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoText/TileInfoText')),
   },
 
   // Future blocks (commented examples):
@@ -169,4 +179,12 @@ export function isLayoutBlock(block: TileInfoBlock): boolean {
 export function canBeInColumn(block: TileInfoBlock): boolean {
   const metadata = getBlockMetadata(block.type);
   return metadata?.canBeInColumn ?? false;
+}
+
+/**
+ * Get lazy-loaded component for a block type
+ */
+export function getBlockComponent(type: string): ComponentType<any> | null {
+  const metadata = BLOCK_REGISTRY[type as BlockType];
+  return metadata?.component || null;
 }

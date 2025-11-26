@@ -1,16 +1,18 @@
 # ADR 0009: Block Registry Factory Pattern
 
-**Status:** Proposed
+**Status:** Implemented ✅
 
 **Date:** 2025-01
 
+**Implementation Date:** 2025-01-24
+
 **Deciders:** Development Team
 
-**TL;DR:** Replace the switch statement in `TileInfoBlock` with a registry-based factory. This eliminates ~30 lines of switch code, enables lazy loading (-60KB), and makes adding blocks easier. Element picker integration is a bonus but not required.
+**TL;DR:** Replace the switch statement in `TileInfoBlock` with a registry-based factory. This eliminates ~30 lines of switch code, enables lazy loading (-60KB), and makes adding blocks easier. This ADR supersedes the "lightweight" approach in ADR 0002 - we're now using lazy loading.
 
 **Related:**
+- [ADR 0002: Plugin Architecture](0002-plugin-architecture.md) - Defines metadata and feature gating (works with this ADR)
 - [Component Architecture Questions](../discussions/component-architecture-questions.md#q10-block-factory-pattern)
-- [Plugin Architecture](0002-plugin-architecture.md)
 - [Block Variants](0003-block-variants.md)
 
 ---

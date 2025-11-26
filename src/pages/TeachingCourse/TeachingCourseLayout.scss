@@ -1,0 +1,50 @@
+.teaching-course-layout {
+  max-width: 1440px;
+  width: 100%;
+  min-height: 400px;
+  min-width: 700px;
+  background-color: white;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.mode-tab {
+  padding: 8px 16px;
+  border-radius: 4px 4px 0 0;
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+  }
+
+  &.active {
+    color: #2563eb;
+    background-color: #eff6ff;
+    border-color: #2563eb;
+    border-bottom-color: transparent;
+    position: relative;
+    bottom: -2px;
+  }
+}
+
+.course-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}

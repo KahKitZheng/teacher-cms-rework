@@ -9,7 +9,7 @@ import {
   moveBlockToRow,
   cloneTiles,
 } from "./dragDropHelpers";
-import { canBeInColumn, isContentBlock, isContainer, getBlockMetadata } from "./blockRegistry";
+import { canBeInColumn, isContentBlock, getBlockMetadata } from "./blockRegistry";
 
 /**
  * Check if two blocks have the same category (both containers or both content)
@@ -29,7 +29,7 @@ function haveSameCategory(block1: TileInfoBlock, block2: TileInfoBlock): boolean
  * Works with unified children arrays (recursively)
  */
 function isColumnLayoutId(id: number, tiles: Tile[]): boolean {
-  function searchInChildren(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+  function searchInChildren(children: TileInfoBlock[]): boolean {
     for (const child of children) {
       if (child.type === "columnLayout" && child.id === id) {
         return true;
@@ -280,7 +280,7 @@ export function handleBlockDragEnd(
 
       // REORDER: Reorder blocks at row level
       const updatedTiles = cloneTiles(tiles);
-      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
+      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoBlockAccordion;
 
       // Sort children by order
       const sorted = [...row.children].sort((a, b) => a.order - b.order);
@@ -320,7 +320,7 @@ export function handleBlockDragEnd(
 
       // REORDER: Reorder blocks within the same column
       const updatedTiles = cloneTiles(tiles);
-      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoRow;
+      const row = updatedTiles[sourceResult.location.tileIdx].children[sourceResult.location.rowIdx] as TileInfoBlockAccordion;
       const layout = row.children[sourceResult.location.layoutIdx] as TileInfoColumnLayout;
       const column = layout.children.find(col => col.order === sourceResult.location.colIdx);
 
@@ -424,7 +424,7 @@ function swapBlockWithColumnLayout(
   const updatedTiles = cloneTiles(tiles);
 
   // Recursively search for the row containing both items
-  function searchAndSwap(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+  function searchAndSwap(children: TileInfoBlock[]): boolean {
     for (const child of children) {
       if (child.type === "accordion") {
         const block = child.children.find((item) => isContentBlock(item) && item.id === blockId);
@@ -483,7 +483,7 @@ export function handleLayoutDragEnd(
   const updatedTiles = cloneTiles(tiles);
 
   // Recursively search for the row containing the layout
-  function searchAndReorder(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean {
+  function searchAndReorder(children: TileInfoBlock[]): boolean {
     for (const child of children) {
       if (child.type === "accordion") {
         // Check if this row contains the active layout

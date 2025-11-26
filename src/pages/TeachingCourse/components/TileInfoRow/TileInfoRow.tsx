@@ -16,7 +16,7 @@ import {
 import { DRAG_STYLES } from "../../utils/dragDropConstants";
 
 type TileInfoRowProps = {
-  tileInfoRow: TileInfoRow;
+  tileInfoRow: TileInfoBlockAccordion;
   children: React.ReactNode;
   activeId?: number | null;
   activeBlockId?: number | null;

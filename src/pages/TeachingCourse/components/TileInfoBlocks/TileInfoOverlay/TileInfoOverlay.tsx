@@ -4,7 +4,7 @@ import SortableColumnLayout from "../../SortableColumnLayout/SortableColumnLayou
 import { DRAG_STYLES } from "../../../utils/dragDropConstants";
 
 type TileInfoOverlayProps = {
-  activeRow?: TileInfoRow | null;
+  activeRow?: TileInfoBlockAccordion | null;
   activeBlock?: TileInfoBlock | null;
   activeLayout?: TileInfoColumnLayout | null;
   activeId: number | null;

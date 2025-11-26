@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import "./ElementPickerModal.module.scss";
-import { BLOCK_REGISTRY } from "../../utils/blockRegistry";
+import { BLOCK_REGISTRY, BlockType } from "../../utils/blockRegistry";
 
 type ElementType = "accordion" | "text" | "dropdown" | "columnLayout" | "heading";
 
@@ -52,16 +52,15 @@ export default function ElementPickerModal(
         }
       } else if (mode === "add") {
         // Auto-select the first available element when adding
-        if (allowedTypes.includes("heading")) {
-          setSelectedElement({ type: "heading", options: { variant: selectedVariant } });
-        } else if (allowedTypes.includes("accordion")) {
-          setSelectedElement({ type: "accordion" });
-        } else if (allowedTypes.includes("columnLayout")) {
-          setSelectedElement({ type: "columnLayout", options: { columns: numColumns } });
-        } else if (allowedTypes.includes("text")) {
-          setSelectedElement({ type: "text" });
-        } else if (allowedTypes.includes("dropdown")) {
-          setSelectedElement({ type: "dropdown" });
+        const firstAllowedType = allowedTypes[0];
+        if (firstAllowedType) {
+          if (firstAllowedType === 'heading') {
+            setSelectedElement({ type: firstAllowedType, options: { variant: selectedVariant } });
+          } else if (firstAllowedType === 'columnLayout') {
+            setSelectedElement({ type: firstAllowedType, options: { columns: numColumns } });
+          } else {
+            setSelectedElement({ type: firstAllowedType });
+          }
         }
       }
     } else {
@@ -95,6 +94,80 @@ export default function ElementPickerModal(
     onClose();
   };
 
+  // Helper to get blocks by category from registry
+  const getBlocksByCategory = (category: 'container' | 'layout' | 'content') => {
+    return Object.entries(BLOCK_REGISTRY)
+      .filter(([type, meta]) =>
+        meta.category === category &&
+        allowedTypes.includes(type as ElementType)
+      )
+      .map(([type, meta]) => ({
+        type: type as ElementType,
+        displayName: meta.displayName,
+        description: 'description' in meta ? meta.description : undefined,
+        meta
+      }));
+  };
+
+  // Helper to render icon for each block type
+  const renderBlockIcon = (type: ElementType) => {
+    const iconProps = {
+      width: "32",
+      height: "32",
+      viewBox: "0 0 24 24",
+      fill: "none",
+      stroke: "currentColor",
+      strokeWidth: "2",
+      strokeLinecap: "round" as const,
+      strokeLinejoin: "round" as const,
+    };
+
+    switch (type) {
+      case 'accordion':
+        return (
+          <div styleName="layout-preview">
+            <div styleName="layout-single"></div>
+          </div>
+        );
+      case 'columnLayout':
+        return (
+          <div styleName="layout-preview">
+            <div styleName="layout-double">
+              {Array.from({ length: numColumns }).map((_, i) => (
+                <div key={i} styleName="layout-column"></div>
+              ))}
+            </div>
+          </div>
+        );
+      case 'heading':
+        return (
+          <svg {...iconProps}>
+            <path d="M6 4v16M18 4v16M8 12h8" />
+          </svg>
+        );
+      case 'text':
+        return (
+          <svg {...iconProps}>
+            <line x1="4" y1="7" x2="20" y2="7" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="17" x2="14" y2="17" />
+          </svg>
+        );
+      case 'dropdown':
+        return (
+          <svg {...iconProps}>
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <path d="m9 11 3 3 3-3" />
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const layoutBlocks = getBlocksByCategory('container').concat(getBlocksByCategory('layout'));
+  const contentBlocks = getBlocksByCategory('content');
+
   return (
     <Modal
       isOpen={isOpen}
@@ -108,155 +181,72 @@ export default function ElementPickerModal(
           <div styleName="elements-sidebar">
             <div styleName="elements-list">
               {/* Layout category */}
-              {(allowedTypes.includes("accordion") || allowedTypes.includes("columnLayout")) && (
+              {layoutBlocks.length > 0 && (
                 <div styleName="category-section">
                   <div styleName="category-header">Layout</div>
-
-                  {allowedTypes.includes("accordion") && (
-                <button
-                  styleName={`element-item ${
-                    selectedElement?.type === "accordion" ? "selected" : ""
-                  }`}
-                  onClick={() => handleElementClick("accordion")}
-                >
-                  <div styleName="element-icon">
-                    <div styleName="layout-preview">
-                      <div styleName="layout-single"></div>
-                    </div>
-                  </div>
-                  <div styleName="element-info">
-                    <div styleName="element-name">Accordion</div>
-                    <div styleName="element-description">
-                      Collapsible container for blocks and layouts
-                    </div>
-                  </div>
-                </button>
-              )}
-
-                  {allowedTypes.includes("columnLayout") && (
+                  {layoutBlocks.map(({ type, displayName, description }) => (
                     <button
+                      key={type}
                       styleName={`element-item ${
-                        selectedElement?.type === "columnLayout" ? "selected" : ""
+                        selectedElement?.type === type ? "selected" : ""
                       }`}
-                      onClick={handleColumnLayoutClick}
+                      onClick={() => {
+                        if (type === 'columnLayout') {
+                          handleColumnLayoutClick();
+                        } else {
+                          handleElementClick(type);
+                        }
+                      }}
                     >
                       <div styleName="element-icon">
-                        <div styleName="layout-preview">
-                          <div styleName="layout-double">
-                            {Array.from({ length: numColumns }).map((_, i) => (
-                              <div key={i} styleName="layout-column"></div>
-                            ))}
-                          </div>
-                        </div>
+                        {renderBlockIcon(type)}
                       </div>
                       <div styleName="element-info">
-                        <div styleName="element-name">{numColumns}-Column Layout</div>
-                        <div styleName="element-description">
-                          Add a multi-column layout inside an accordion
+                        <div styleName="element-name">
+                          {type === 'columnLayout' ? `${numColumns}-Column Layout` : displayName}
                         </div>
+                        {description && (
+                          <div styleName="element-description">
+                            {description}
+                          </div>
+                        )}
                       </div>
                     </button>
-                  )}
+                  ))}
                 </div>
               )}
 
               {/* Content blocks category */}
-              {(allowedTypes.includes("heading") || allowedTypes.includes("text") || allowedTypes.includes("dropdown")) && (
+              {contentBlocks.length > 0 && (
                 <div styleName="category-section">
                   <div styleName="category-header">Blocks</div>
-
-                  {allowedTypes.includes("heading") && (
-                <button
-                  styleName={`element-item ${
-                    selectedElement?.type === "heading" ? "selected" : ""
-                  }`}
-                  onClick={() => handleElementClick("heading", { variant: selectedVariant })}
-                >
-                  <div styleName="element-icon">
-                    <svg
-                      width="32"
-                      height="32"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M6 4v16M18 4v16M8 12h8" />
-                    </svg>
-                  </div>
-                  <div styleName="element-info">
-                    <div styleName="element-name">Heading</div>
-                    <div styleName="element-description">
-                      Add a heading or title
-                    </div>
-                  </div>
-                </button>
-              )}
-
-                {allowedTypes.includes("text") && (
-                  <button
-                    styleName={`element-item ${
-                      selectedElement?.type === "text" ? "selected" : ""
-                    }`}
-                    onClick={() => handleElementClick("text")}
-                  >
-                    <div styleName="element-icon">
-                      <svg
-                        width="32"
-                        height="32"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <line x1="4" y1="7" x2="20" y2="7" />
-                        <line x1="4" y1="12" x2="20" y2="12" />
-                        <line x1="4" y1="17" x2="14" y2="17" />
-                      </svg>
-                    </div>
-                    <div styleName="element-info">
-                      <div styleName="element-name">Text Block</div>
-                      <div styleName="element-description">
-                        Add a text input field
-                      </div>
-                    </div>
-                  </button>
-                )}
-
-                  {allowedTypes.includes("dropdown") && (
+                  {contentBlocks.map(({ type, displayName, description }) => (
                     <button
+                      key={type}
                       styleName={`element-item ${
-                        selectedElement?.type === "dropdown" ? "selected" : ""
+                        selectedElement?.type === type ? "selected" : ""
                       }`}
-                      onClick={() => handleElementClick("dropdown")}
+                      onClick={() => {
+                        if (type === 'heading') {
+                          handleElementClick(type, { variant: selectedVariant });
+                        } else {
+                          handleElementClick(type);
+                        }
+                      }}
                     >
                       <div styleName="element-icon">
-                        <svg
-                          width="32"
-                          height="32"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <path d="m9 11 3 3 3-3" />
-                        </svg>
+                        {renderBlockIcon(type)}
                       </div>
                       <div styleName="element-info">
-                        <div styleName="element-name">Dropdown Block</div>
-                        <div styleName="element-description">
-                          Add a dropdown select field
-                        </div>
+                        <div styleName="element-name">{displayName}</div>
+                        {description && (
+                          <div styleName="element-description">
+                            {description}
+                          </div>
+                        )}
                       </div>
                     </button>
-                  )}
+                  ))}
                 </div>
               )}
             </div>

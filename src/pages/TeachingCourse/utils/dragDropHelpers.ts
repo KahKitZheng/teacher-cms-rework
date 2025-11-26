@@ -12,12 +12,12 @@ function getColumnByOrder(layout: TileInfoColumnLayout, colIdx: number): TileInf
 }
 
 /**
- * Type guard to check if an item is a TileInfoBlock
+ * Type guard to check if an item is a content block (not accordion/columnLayout/column)
  */
 function isTileInfoBlock(
-  item: TileInfoBlock | TileInfoColumnLayout | TileInfoRow
-): item is TileInfoBlock {
-  const type = (item as any).type;
+  item: TileInfoBlock
+): item is Exclude<TileInfoBlock, TileInfoBlockAccordion | TileInfoColumnLayout | TileInfoBlockColumn> {
+  const type = item.type;
   return type === "text" || type === "dropdown" || type === "paragraph" || type === "heading";
 }
 
@@ -55,7 +55,7 @@ export type BlockSearchResult = {
  * Result of finding a row with its data and location
  */
 export type RowSearchResult = {
-  row: TileInfoRow;
+  row: TileInfoBlockAccordion;
   tileIdx: number;
   rowIdx: number;
 };
@@ -205,7 +205,7 @@ export function findColumnByIds(
   return null;
 
   function searchInChildren(
-    children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[],
+    children: TileInfoBlock[],
     tileIdx: number
   ): ColumnLocation | null {
     for (let childIdx = 0; childIdx < children.length; childIdx++) {
@@ -246,7 +246,7 @@ export function cloneTiles(tiles: Tile[]): Tile[] {
     children: cloneChildren(tile.children),
   }));
 
-  function cloneChildren(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): any[] {
+  function cloneChildren(children: TileInfoBlock[]): any[] {
     return children.map((child) => {
       if (child.type === "accordion") {
         return {
@@ -397,7 +397,7 @@ export function moveBlockToRow(
   if (!block) return tiles;
 
   // Find target row recursively
-  const findAndAddToRow = (children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]): boolean => {
+  const findAndAddToRow = (children: TileInfoBlock[]): boolean => {
     for (const child of children) {
       if (child.type === "accordion") {
         if (child.id === targetRowId) {
@@ -433,7 +433,7 @@ export function moveBlockToRow(
 export function getAllBlocks(tiles: Tile[]): TileInfoBlock[] {
   const blocks: TileInfoBlock[] = [];
 
-  function collectBlocks(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]) {
+  function collectBlocks(children: TileInfoBlock[]) {
     for (const child of children) {
       if (child.type === "accordion") {
         collectBlocks(child.children);
@@ -460,10 +460,10 @@ export function getAllBlocks(tiles: Tile[]): TileInfoBlock[] {
 /**
  * Get all rows from all tiles (recursively)
  */
-export function getAllRows(tiles: Tile[]): TileInfoRow[] {
-  const rows: TileInfoRow[] = [];
+export function getAllRows(tiles: Tile[]): TileInfoBlockAccordion[] {
+  const rows: TileInfoBlockAccordion[] = [];
 
-  function collectRows(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]) {
+  function collectRows(children: TileInfoBlock[]) {
     for (const child of children) {
       if (child.type === "accordion") {
         rows.push(child);
@@ -485,7 +485,7 @@ export function getAllRows(tiles: Tile[]): TileInfoRow[] {
 export function getAllColumnLayoutIds(tiles: Tile[]): number[] {
   const layoutIds: number[] = [];
 
-  function collectLayoutIds(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]) {
+  function collectLayoutIds(children: TileInfoBlock[]) {
     for (const child of children) {
       if (child.type === "columnLayout") {
         layoutIds.push(child.id);
@@ -508,7 +508,7 @@ export function getAllColumnLayoutIds(tiles: Tile[]): number[] {
 export function getAllColumnLayouts(tiles: Tile[]): TileInfoColumnLayout[] {
   const layouts: TileInfoColumnLayout[] = [];
 
-  function collectLayouts(children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]) {
+  function collectLayouts(children: TileInfoBlock[]) {
     for (const child of children) {
       if (child.type === "columnLayout") {
         layouts.push(child);

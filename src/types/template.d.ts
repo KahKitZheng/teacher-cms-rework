@@ -75,19 +75,6 @@ type TileInfoBlockColumn = {
   children: TileInfoBlock[]; // Recursive: can contain any blocks including accordions!
 };
 
-// DEPRECATED: TileInfoRow is now TileInfoBlockAccordion
-// Kept for backwards compatibility during migration
-type TileInfoRow = TileInfoBlockAccordion;
-
-// DEPRECATED: TileInfoColumn is no longer used.
-// Column layouts now use TileInfoBlockColumn children for fully recursive structure.
-// Kept for backwards compatibility during migration.
-type TileInfoColumn = {
-  id: number;
-  order: number;
-  blocks: TileInfoBlock[];
-  // width: string  // i.e. 2fr - need to build a dedicated UI for this though
-};
 
 type TileInfoBlock =
   | TileInfoBlockAccordion  // Collapsible container block
