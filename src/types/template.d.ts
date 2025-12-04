@@ -42,13 +42,13 @@ type Tile = {
  * TILE_INFO BLOCKS
  */
 
-// Accordion/Collapse block - A container block that can hold other blocks (including nested accordions)
-type TileInfoBlockAccordion = {
-  type: "accordion";
+// Base type for all TileInfo blocks - contains common fields
+type TileInfoBlockBase = {
+  type: string;
   level: number; // Dynamic level: 0 = tile level, 1+ = nested levels
   id: number;
   order: number;
-  parentId?: number; // Optional: References parent accordion ID (undefined for tile-level)
+  parentId?: number; // Optional: References parent container ID (undefined for tile-level)
 };
 
 // Accordion/Collapse block - A container block that can hold other blocks (including nested accordions)
@@ -60,35 +60,19 @@ type TileInfoBlockAccordion = TileInfoBlockBase & {
 };
 
 // Column layout - A container for column blocks
-type TileInfoColumnLayout = {
+type TileInfoColumnLayout = TileInfoBlockBase & {
   type: "columnLayout";
-  level: number; // Same level as parent accordion
-  id: number;
-  order: number;
-  parentId: number; // References parent accordion.id
+  parentId: number; // References parent accordion.id (required for layouts)
   children: TileInfoBlockColumn[]; // Contains column blocks (fully recursive!)
 };
 
 // Column block - A single column within a column layout
-type TileInfoBlockColumn = {
+type TileInfoBlockColumn = TileInfoBlockBase & {
   type: "column";
-  level: number; // Same level as parent layout
-  id: number;
-  order: number; // Used for column ordering (0 = first column, 1 = second, etc.)
-  parentId: number; // References parent columnLayout.id
+  parentId: number; // References parent columnLayout.id (required for columns)
   width?: string; // Optional: CSS width/flex value (e.g., "1fr", "2fr", "300px")
   children: TileInfoBlock[]; // Recursive: can contain any blocks including accordions!
 };
-
-
-type TileInfoBlock =
-  | TileInfoBlockAccordion  // Collapsible container block
-  | TileInfoColumnLayout    // Layout container for columns
-  | TileInfoBlockColumn     // Individual column block
-  | TileInfoBlockHeading    // Heading block
-  | TileInfoBlockText       // Text block (might be omitted if tiptap is used)
-  | TileInfoBlockParagraph  // Paragraph block (TipTap)
-  | TileInfoBlockDropdown;  // Dropdown/select block
 
 type TileInfoSelectOption = {
   label: string;
@@ -98,60 +82,50 @@ type TileInfoSelectOption = {
   disabled?: boolean;
 };
 
-type TileInfoBlockText = {
+type TileInfoBlockText = TileInfoBlockBase & {
   type: "text";
-  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
-  id: number;
-  order: number;
-  parentId?: number; // Optional: References parent container ID (undefined for tile-level)
-  icon?: {
-    template?: string;
-    editor?: string;
-    viewing?: string;
-  }; // we need to decide if the data is just for templating or also for the course
   name: string;
   data: string;
-  placeholder?: TileInfoPlaceholder;
 };
 
-type TileInfoBlockParagraph = {
+type TileInfoBlockParagraph = TileInfoBlockBase & {
   type: "paragraph";
-  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
-  id: number;
-  order: number;
-  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
   name: string;
   data: Record<string, unknown>; // TipTap for sure
-  placeholder?: TileInfoPlaceholder;
-};
-
-type TileInfoBlockDropdown = {
-  type: "dropdown";
-  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
-  id: number;
-  order: number;
-  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  name: string;
-  placeholder?: TileInfoPlaceholder; // not used in template and editor, maybe only viewing?
-  options: TileInfoSelectOption[];
 };
 
 // TileInfo - Reusable object types
-type TileInfoBlockHeading = {
+type TileInfoBlockHeading = TileInfoBlockBase & {
   type: "heading";
-  level: number; // Dynamic level: 0 = tile, 1+ = row level, column blocks match parent row level
-  id: number;
-  order: number;
-  parentId?: number; // Optional: References parent row/layout ID (undefined for tile-level)
-  icon?: string; // same for all types
-  name: string;
+  icon?: string; // Optional icon for all heading levels (typically used for h2-h6)
+  name: string; // Heading text content
+  headingLevel?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"; // HTML heading level (defaults to h2)
+  // Heading level guidelines (within a SINGLE tile):
+  // - h1: Main tile title (ONE per tile maximum, usually no icon)
+  //       Multiple tiles on the same page can each have their own h1
+  //       Each tile is treated as an independent content unit
+  // - h2: Major section heading (default, can have icon)
+  //       Used for accordion headers and main sections within the tile
+  // - h3: Subsection heading (can have icon, smaller than h2)
+  //       Nested content within h2 sections
+  // - h4: Minor heading (nested subsections)
+  // - h5-h6: Deep nested headings (rarely used in practice)
 };
 
-type TileInfoPlaceholder = {
-  template?: string;
-  editor?: string;
-  viewing?: string;
-}; // we need to decide if the data is just for templating or also for the course
+type TileInfoBlockDropdown = TileInfoBlockBase & {
+  type: "dropdown";
+  name: string;
+  options: TileInfoSelectOption[];
+};
+
+type TileInfoBlock =
+  | TileInfoBlockAccordion // Collapsible container block
+  | TileInfoColumnLayout // Layout container for columns
+  | TileInfoBlockColumn // Individual column block
+  | TileInfoBlockHeading // Heading block
+  | TileInfoBlockText // Text block (might be omitted if tiptap is used)
+  | TileInfoBlockParagraph // Paragraph block (TipTap)
+  | TileInfoBlockDropdown; // Dropdown/select block
 
 /**
  *  ENUMS
