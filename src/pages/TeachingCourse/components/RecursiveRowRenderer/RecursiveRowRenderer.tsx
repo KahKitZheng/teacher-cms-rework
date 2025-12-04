@@ -1,5 +1,5 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import TileInfoRow from "../TileInfoRow/TileInfoRow";
+import TileInfoAccordion from "../TileInfoAccordion/TileInfoAccordion";
 import TileInfoBlock from "../TileInfoBlocks/TileInfoBlock/TileInfoBlock";
 import SortableColumnLayout from "../SortableColumnLayout/SortableColumnLayout";
 import DroppableColumn from "../DroppableColumn/DroppableColumn";
@@ -43,7 +43,7 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
   } = props;
 
   return (
-    <TileInfoRow
+    <TileInfoAccordion
       key={accordion.id}
       tileInfoRow={accordion}
       activeId={activeId}
@@ -144,6 +144,6 @@ export default function RecursiveAccordionRenderer(props: Readonly<RecursiveAcco
             );
           })}
       </SortableContext>
-    </TileInfoRow>
+    </TileInfoAccordion>
   );
 }

@@ -14,13 +14,13 @@ This document tracks the progress of migrating from the old data structure (mixe
 **File**: [src/types/template.d.ts](../../src/types/template.d.ts)
 
 - ✅ Updated `Tile` to use `children: TileInfoBlock[]` (unified recursive array)
-- ✅ Renamed `TileInfoRow` to `TileInfoBlockAccordion` (accordions are now blocks)
+- ✅ Renamed `TileInfoAccordion` to `TileInfoBlockAccordion` (accordions are now blocks)
 - ✅ Added `TileInfoBlockAccordion` with recursive `children: TileInfoBlock[]`
 - ✅ Added `TileInfoColumnLayout` as a block type with `children: TileInfoBlockColumn[]`
 - ✅ Added `TileInfoBlockColumn` with recursive `children: TileInfoBlock[]`
 - ✅ Added numeric `level` field (0 = tile, 1+ = nested levels)
 - ✅ Added discriminator fields: `type`, `order`, `parentId`
-- ✅ Removed deprecated `TileInfoRow` and `TileInfoColumn` type aliases
+- ✅ Removed deprecated `TileInfoAccordion` and `TileInfoColumn` type aliases
 
 ### Phase 2: Mock Data ✅
 **File**: [src/pages/TeachingCourse/mock-data/tileInfo.ts](../../src/pages/TeachingCourse/mock-data/tileInfo.ts)
@@ -42,7 +42,7 @@ This document tracks the progress of migrating from the old data structure (mixe
 - ✅ Updated `getAllColumnLayoutIds()` and `getAllColumnLayouts()`
 - ✅ Updated `cloneTiles()` to recursively clone children
 - ✅ Updated `moveBlockToColumn()` and `moveBlockToRow()` for recursive structure
-- ✅ Removed all `(TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]` type unions
+- ✅ Removed all `(TileInfoBlock | TileInfoAccordion | TileInfoColumnLayout)[]` type unions
 - ✅ Changed to use `TileInfoBlock[]` everywhere (since all are blocks in the union)
 
 ### Phase 4: Component Updates ✅
@@ -53,12 +53,12 @@ This document tracks the progress of migrating from the old data structure (mixe
 - ✅ Updated SortableContext to work with unified children arrays
 - ✅ Updated delete handlers to work recursively through children
 - ✅ Updated add handlers to add to children arrays
-- ✅ Removed all `(TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]` type unions
-- ✅ Changed all `TileInfoRow` type references to `TileInfoBlockAccordion`
+- ✅ Removed all `(TileInfoBlock | TileInfoAccordion | TileInfoColumnLayout)[]` type unions
+- ✅ Changed all `TileInfoAccordion` type references to `TileInfoBlockAccordion`
 
-**File**: [src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx](../../src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx)
+**File**: [src/pages/TeachingCourse/components/TileInfoAccordion/TileInfoAccordion.tsx](../../src/pages/TeachingCourse/components/TileInfoAccordion/TileInfoAccordion.tsx)
 
-- ✅ Updated prop type from `TileInfoRow` to `TileInfoBlockAccordion`
+- ✅ Updated prop type from `TileInfoAccordion` to `TileInfoBlockAccordion`
 
 **File**: [src/pages/TeachingCourse/components/RecursiveRowRenderer/RecursiveRowRenderer.tsx](../../src/pages/TeachingCourse/components/RecursiveRowRenderer/RecursiveRowRenderer.tsx)
 
@@ -66,7 +66,7 @@ This document tracks the progress of migrating from the old data structure (mixe
 
 **File**: [src/pages/TeachingCourse/components/TileInfoBlocks/TileInfoOverlay/TileInfoOverlay.tsx](../../src/pages/TeachingCourse/components/TileInfoBlocks/TileInfoOverlay/TileInfoOverlay.tsx)
 
-- ✅ Updated prop type from `TileInfoRow` to `TileInfoBlockAccordion`
+- ✅ Updated prop type from `TileInfoAccordion` to `TileInfoBlockAccordion`
 - ✅ Renders recursive accordion structure in overlay
 
 ### Phase 5: Drag Handlers ✅
@@ -76,8 +76,8 @@ This document tracks the progress of migrating from the old data structure (mixe
 - ✅ Updated `handleRowDragEnd()` to reorder within children array
 - ✅ Updated `handleBlockDragEnd()` to work with recursive structure
 - ✅ Updated `handleLayoutDragEnd()` to work with recursive structure
-- ✅ Removed all `(TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]` type unions
-- ✅ Changed all `TileInfoRow` type references to `TileInfoBlockAccordion`
+- ✅ Removed all `(TileInfoBlock | TileInfoAccordion | TileInfoColumnLayout)[]` type unions
+- ✅ Changed all `TileInfoAccordion` type references to `TileInfoBlockAccordion`
 - ✅ Removed unused `isContainer` import
 
 ### Phase 6: Build Verification ✅
@@ -93,10 +93,10 @@ This document tracks the progress of migrating from the old data structure (mixe
 ### Old Structure (Mixed Arrays):
 ```typescript
 Tile {
-  data: (TileInfoRow | TileInfoBlock)[]  // Mixed array
+  data: (TileInfoAccordion | TileInfoBlock)[]  // Mixed array
 }
 
-TileInfoRow {
+TileInfoAccordion {
   items: (TileInfoBlock | TileInfoColumnLayout)[]  // Mixed array
 }
 
@@ -111,7 +111,7 @@ Tile {
   children: TileInfoBlock[]  // Unified recursive array
 }
 
-// TileInfoRow renamed to TileInfoBlockAccordion
+// TileInfoAccordion renamed to TileInfoBlockAccordion
 TileInfoBlockAccordion {
   type: "accordion"
   level: number  // 0 = tile level, 1+ = nested
@@ -231,7 +231,7 @@ Example: `column-123-456-0` (first column in layout 456 of accordion 123)
 
 ## Notes
 
-- `TileInfoRow` has been renamed to `TileInfoBlockAccordion`
+- `TileInfoAccordion` has been renamed to `TileInfoBlockAccordion`
 - `TileInfoColumn` type has been completely removed
 - All code uses `TileInfoBlock[]` for children arrays
 - Level is now numeric (0, 1, 2, ...) instead of string-based

@@ -1,4 +1,4 @@
-import TileInfoRow from "../../TileInfoRow/TileInfoRow";
+import TileInfoAccordion from "../../TileInfoAccordion/TileInfoAccordion";
 import TileInfoBlock from "../TileInfoBlock/TileInfoBlock";
 import SortableColumnLayout from "../../SortableColumnLayout/SortableColumnLayout";
 import { DRAG_STYLES } from "../../../utils/dragDropConstants";
@@ -37,7 +37,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
           cursor: "grabbing",
         }}
       >
-        <TileInfoRow
+        <TileInfoAccordion
           tileInfoRow={activeRow}
           isDragOverlay={true}
           activeId={activeId}
@@ -74,7 +74,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                 </div>
               ) : item.type === 'accordion' ? (
                 // Render nested row
-                <TileInfoRow
+                <TileInfoAccordion
                   key={item.id}
                   tileInfoRow={item}
                   isDragOverlay={true}
@@ -108,7 +108,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                         <TileInfoBlock key={nestedItem.id} block={nestedItem} variant="template" isDragOverlay={true} />
                       ) : null
                     )}
-                </TileInfoRow>
+                </TileInfoAccordion>
               ) : (
                 // Render direct block
                 <TileInfoBlock
@@ -119,7 +119,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                 />
               )
             )}
-        </TileInfoRow>
+        </TileInfoAccordion>
       </div>
     );
   }

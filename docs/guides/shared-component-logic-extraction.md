@@ -80,7 +80,7 @@ export default function TileInfoText(props) {
 - `TileInfoText.tsx`
 - `TileInfoDropdown.tsx`
 - `TileInfoHeading.tsx`
-- `TileInfoRow.tsx`
+- `TileInfoAccordion.tsx`
 - And every future block type...
 
 ---

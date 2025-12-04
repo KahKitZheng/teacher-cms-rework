@@ -139,7 +139,7 @@ const ALL_BLOCKS = {
     displayName: 'Accordion',
     description: 'Collapsible container for blocks and layouts',
     icon: 'chevron-down',
-    component: lazy(() => import('../components/TileInfoRow/TileInfoRow')),
+    component: lazy(() => import('../components/TileInfoAccordion/TileInfoAccordion')),
     createBlock: ({ id, parentId, level, order }) => ({
       id,
       type: 'accordion',

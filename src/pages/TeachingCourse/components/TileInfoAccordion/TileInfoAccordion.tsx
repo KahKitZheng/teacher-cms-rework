@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DynamicIcon } from "lucide-react/dynamic";
 import DragHandle from "../DragHandle/DragHandle";
 import InfoBlockActions from "../InfoBlockActions/InfoBlockActions";
-import "./TileInfoRow.module.scss";
+import "./TileInfoAccordion.module.scss";
 import IconPicker from "src/components/IconPicker/IconPicker";
 import { ICONS } from "src/constants/icons";
 import { useSortable } from "@dnd-kit/sortable";
@@ -15,7 +15,7 @@ import {
 } from "../../utils/dragDropStyles";
 import { DRAG_STYLES } from "../../utils/dragDropConstants";
 
-type TileInfoRowProps = {
+type TileInfoAccordionProps = {
   tileInfoRow: TileInfoBlockAccordion;
   children: React.ReactNode;
   activeId?: number | null;
@@ -26,7 +26,7 @@ type TileInfoRowProps = {
   onDeleteElement?: () => void;
 };
 
-export default function TileInfoRow(props: Readonly<TileInfoRowProps>) {
+export default function TileInfoAccordion(props: Readonly<TileInfoAccordionProps>) {
   const {
     tileInfoRow,
     children,

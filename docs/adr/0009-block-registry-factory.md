@@ -31,7 +31,7 @@ export default function TileInfoBlock({ block, variant }: Props) {
     case 'dropdown':
       return <TileInfoDropdown tileInfo={block} variant={variant} />;
     case 'accordion':
-      return <TileInfoRow tileInfo={block} variant={variant} />;
+      return <TileInfoAccordion tileInfo={block} variant={variant} />;
     default:
       return <div>Unknown block type: {block.type}</div>;
   }
@@ -86,7 +86,7 @@ export const BLOCK_REGISTRY: Record<string, BlockConfig> = {
     component: lazy(() => import('../components/TileInfoBlocks/TileInfoDropdown')),
   },
   accordion: {
-    component: lazy(() => import('../components/TileInfoRow')),
+    component: lazy(() => import('../components/TileInfoAccordion')),
   },
   columnLayout: {
     component: lazy(() => import('../components/TileInfoBlocks/TileInfoColumnLayout')),

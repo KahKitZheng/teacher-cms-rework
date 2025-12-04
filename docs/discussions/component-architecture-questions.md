@@ -293,7 +293,7 @@ export default function TileInfoBlock({ block, variant }: Props) {
     case 'dropdown':
       return <TileInfoDropdown tileInfo={block} variant={variant} />;
     case 'accordion':
-      return <TileInfoRow tileInfo={block} variant={variant} />;
+      return <TileInfoAccordion tileInfo={block} variant={variant} />;
     default:
       return <div>Unknown block type: {block.type}</div>;
   }
@@ -398,7 +398,7 @@ const BLOCK_COMPONENTS = {
   text: TileInfoText,
   heading: TileInfoHeading,
   dropdown: TileInfoDropdown,
-  accordion: TileInfoRow,
+  accordion: TileInfoAccordion,
 } as const;
 
 export function getBlockComponent(type: string) {

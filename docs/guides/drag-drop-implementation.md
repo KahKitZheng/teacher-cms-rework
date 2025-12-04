@@ -251,7 +251,7 @@ When dragging a **column layout**, the system checks:
 - **Drag Handlers**: `src/pages/TeachingCourse/utils/dragHandlers.ts` - Implements category-based restrictions
 - **Collision Detection**: `src/pages/TeachingCourse/utils/collisionDetection.ts` - Custom collision algorithms
 - **Helper Functions**: `src/pages/TeachingCourse/utils/dragDropHelpers.ts` - Utility functions for data manipulation
-- **Row Component**: `src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx` - Accordion/row rendering
+- **Row Component**: `src/pages/TeachingCourse/components/TileInfoAccordion/TileInfoAccordion.tsx` - Accordion/row rendering
 - **Layout Component**: `src/pages/TeachingCourse/components/SortableColumnLayout/SortableColumnLayout.tsx` - Column layout rendering
 
 ## Recent Changes
@@ -265,7 +265,7 @@ When dragging a **column layout**, the system checks:
 
 ### 🧹 Code Cleanup
 - Removed unused backup file `dragDropHelpers.ts.backup`
-- Removed unused type guards (`_isTileInfoRow`, `_isTileInfoColumnLayout`)
+- Removed unused type guards (`_isTileInfoAccordion`, `_isTileInfoColumnLayout`)
 - Removed unused functions (`swapBlocks`, `findRowById`, unused blockRegistry helpers)
 - Removed commented-out code and unused `TileInfoParagraph` component
 - Improved code maintainability by removing ~200 lines of dead code

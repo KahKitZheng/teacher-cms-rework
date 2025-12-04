@@ -49,6 +49,11 @@ type TileInfoBlockAccordion = {
   id: number;
   order: number;
   parentId?: number; // Optional: References parent accordion ID (undefined for tile-level)
+};
+
+// Accordion/Collapse block - A container block that can hold other blocks (including nested accordions)
+type TileInfoBlockAccordion = TileInfoBlockBase & {
+  type: "accordion";
   icon?: string;
   name: string; // Title/header of the accordion
   children: TileInfoBlock[]; // Recursive: can contain any blocks including nested accordions!

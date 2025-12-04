@@ -70,7 +70,7 @@ type Row = {
 2. **Type safety**: Homogeneous arrays eliminate the need for type guards
    ```typescript
    // Before
-   tile.data.filter(item => isTileInfoRow(item))
+   tile.data.filter(item => isTileInfoAccordion(item))
 
    // After
    tile.rows // TypeScript knows these are all rows
@@ -152,7 +152,7 @@ type Row = {
 - Update utility functions to work with separated arrays
 
 ### Phase 4: Update Components (2-3 hours)
-- Update `TileInfoRow.tsx`, `TileInfoBlock.tsx`, etc.
+- Update `TileInfoAccordion.tsx`, `TileInfoBlock.tsx`, etc.
 - Update rendering logic to iterate over separated arrays
 
 ### Phase 5: Update Drag Handlers (2-3 hours)

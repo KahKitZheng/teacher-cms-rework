@@ -92,7 +92,7 @@ export type Tile = {
   id: string;
   name: string; // Required by type system
   blocks: TileInfoBlock[]; // Must be array
-  rows: TileInfoRow[];
+  rows: TileInfoAccordion[];
 };
 
 export type BlockType =
@@ -144,7 +144,7 @@ export const TileSchema = z.object({
     .min(1, 'Tile name is required')
     .max(100, 'Tile name must be less than 100 characters'),
   blocks: z.array(z.lazy(() => TileInfoBlockSchema)),
-  rows: z.array(z.lazy(() => TileInfoRowSchema)),
+  rows: z.array(z.lazy(() => TileInfoAccordionSchema)),
 });
 
 export const TileInfoBlockSchema = z.object({

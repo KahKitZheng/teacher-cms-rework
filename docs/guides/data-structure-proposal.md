@@ -179,7 +179,7 @@ type Tile = {
 ```typescript
 // Old way (mixed):
 {tileInfo[0].data.map(item =>
-  isTileInfoRow(item) ? <Row .../> : <Block .../>
+  isTileInfoAccordion(item) ? <Row .../> : <Block .../>
 )}
 
 // New way (separated):
@@ -192,7 +192,7 @@ type Tile = {
 ### Benefits:
 ✅ **No type guards needed**: Arrays are homogeneous
 ✅ **Clearer intent**: `tile.blocks` vs `tile.rows`
-✅ **Easier filtering**: `tile.blocks.filter(...)` instead of `tile.data.filter(isTileInfoRow)`
+✅ **Easier filtering**: `tile.blocks.filter(...)` instead of `tile.data.filter(isTileInfoAccordion)`
 ✅ **Better for CRUD**: Add/remove from specific arrays
 ✅ **Type safety**: TypeScript knows exact type in each array
 
@@ -297,7 +297,7 @@ If you want to keep the current structure but improve it:
 
 ```typescript
 // 1. Add type discriminators
-type TileInfoRow = {
+type TileInfoAccordion = {
   type: "row"; // ADD THIS
   id: number;
   name: string;
@@ -331,10 +331,10 @@ type TileInfoBlock = {
 type Tile = {
   id: number;
   name: string;
-  children: (TileInfoRow | TileInfoBlock)[]; // RENAME from 'data'
+  children: (TileInfoAccordion | TileInfoBlock)[]; // RENAME from 'data'
 };
 
-type TileInfoRow = {
+type TileInfoAccordion = {
   type: "row";
   id: number;
   name: string;
@@ -351,12 +351,12 @@ type TileInfoRow = {
 
 ```typescript
 // Old:
-function isTileInfoRow(item: any): item is TileInfoRow {
+function isTileInfoAccordion(item: any): item is TileInfoAccordion {
   return "items" in item;
 }
 
 // New:
-function isTileInfoRow(item: TileInfoRow | TileInfoBlock): item is TileInfoRow {
+function isTileInfoAccordion(item: TileInfoAccordion | TileInfoBlock): item is TileInfoAccordion {
   return item.type === "row";
 }
 

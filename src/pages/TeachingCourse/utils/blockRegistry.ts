@@ -42,7 +42,7 @@ export const BLOCK_REGISTRY = {
     displayName: 'Accordion',
     description: 'Collapsible container for blocks and layouts',
     icon: 'chevron-down',
-    component: lazy(() => import('../components/TileInfoRow/TileInfoRow')),
+    component: lazy(() => import('../components/TileInfoAccordion/TileInfoAccordion')),
   },
 
   // Layout blocks

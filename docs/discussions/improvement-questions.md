@@ -101,7 +101,7 @@ Medium priority
 
 ### Q3: Unified vs Discriminated Children Arrays
 
-**Current State**: `tile.children` and `accordion.children` contain mixed types: `(TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]`
+**Current State**: `tile.children` and `accordion.children` contain mixed types: `(TileInfoBlock | TileInfoAccordion | TileInfoColumnLayout)[]`
 
 **Questions**:
 
@@ -109,11 +109,11 @@ Medium priority
 
    ```typescript
    // Option A: Current (Unified)
-   children: (TileInfoBlock | TileInfoRow | TileInfoColumnLayout)[]
+   children: (TileInfoBlock | TileInfoAccordion | TileInfoColumnLayout)[]
 
    // Option B: Separated
    blocks: TileInfoBlock[]
-   rows: TileInfoRow[]
+   rows: TileInfoAccordion[]
    layouts: TileInfoColumnLayout[]
    ```
 
@@ -293,7 +293,7 @@ High priority
 
 ### Q10: Component Composition
 
-**Current State**: Deep component nesting (TeachingCourseTemplate → RecursiveRowRenderer → TileInfoRow → TileInfoBlock → TileInfoText).
+**Current State**: Deep component nesting (TeachingCourseTemplate → RecursiveRowRenderer → TileInfoAccordion → TileInfoBlock → TileInfoText).
 
 **Questions**:
 

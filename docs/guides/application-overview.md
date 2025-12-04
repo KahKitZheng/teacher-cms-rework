@@ -27,7 +27,7 @@
 src/pages/TeachingCourse/
 ├── TeachingCourseLayout.tsx    # Route wrapper with mode tabs
 ├── components/                  # Reusable UI components
-│   ├── TileInfoRow/            # Accordion container (formerly row)
+│   ├── TileInfoAccordion/            # Accordion container (formerly row)
 │   ├── TileInfoBlocks/         # Block components
 │   │   ├── TileInfoBlock/      # Block factory (uses registry)
 │   │   │   ├── TileInfoBlock.tsx
@@ -84,7 +84,7 @@ Tile {
   children: TileInfoBlock[];  // Unified recursive array
 }
 
-// Accordion block (formerly TileInfoRow)
+// Accordion block (formerly TileInfoAccordion)
 TileInfoBlockAccordion {
   type: "accordion";
   level: number;              // 0 = tile level, 1+ = nested
@@ -149,7 +149,7 @@ TeachingCourseLayout (Route wrapper with mode tabs)
     ├── DndContext (Drag & Drop Context)
     │   ├── SortableContext (Tile Level - Vertical)
     │   │   ├── RecursiveAccordionRenderer (level="tile")
-    │   │   │   └── TileInfoRow (Accordion)
+    │   │   │   └── TileInfoAccordion (Accordion)
     │   │   │       ├── SortableContext (Accordion Level)
     │   │   │       │   ├── TileInfoBlock (level="accordion")
     │   │   │       │   ├── RecursiveAccordionRenderer (Nested accordions)
@@ -202,7 +202,7 @@ export const BLOCK_REGISTRY = {
     canBeAtTileLevel: true,
     displayName: 'Accordion',
     icon: 'chevron-down',
-    component: lazy(() => import('../components/TileInfoRow/TileInfoRow')),
+    component: lazy(() => import('../components/TileInfoAccordion/TileInfoAccordion')),
   },
   text: {
     category: 'content',
@@ -466,7 +466,7 @@ type Tile = {
   children: TileInfoBlock[];  // Unified recursive array
 };
 
-// Accordion block (formerly TileInfoRow)
+// Accordion block (formerly TileInfoAccordion)
 type TileInfoBlockAccordion = {
   type: "accordion";
   level: number;        // 0 = tile level, 1+ = nested
@@ -735,7 +735,7 @@ Accordions render recursively to support unlimited nesting:
 // In RecursiveAccordionRenderer.tsx
 export default function RecursiveAccordionRenderer({ accordion, ...props }) {
   return (
-    <TileInfoRow
+    <TileInfoAccordion
       tileInfo={accordion}
       {...props}
     >
@@ -749,7 +749,7 @@ export default function RecursiveAccordionRenderer({ accordion, ...props }) {
             return <TileInfoBlock block={child} {...props} />
           }
         })}
-    </TileInfoRow>
+    </TileInfoAccordion>
   );
 }
 ```
@@ -795,7 +795,7 @@ COLOR_OPACITY = {
 ### Components
 - [TileInfoBlock.tsx](../../src/pages/TeachingCourse/components/TileInfoBlocks/TileInfoBlock/TileInfoBlock.tsx) - Block factory component
 - [BlockSkeleton.tsx](../../src/pages/TeachingCourse/components/TileInfoBlocks/TileInfoBlock/BlockSkeleton.tsx) - Loading skeleton
-- [TileInfoRow.tsx](../../src/pages/TeachingCourse/components/TileInfoRow/TileInfoRow.tsx) - Accordion container with drop zone
+- [TileInfoAccordion.tsx](../../src/pages/TeachingCourse/components/TileInfoAccordion/TileInfoAccordion.tsx) - Accordion container with drop zone
 - [RecursiveRowRenderer.tsx](../../src/pages/TeachingCourse/components/RecursiveRowRenderer/RecursiveRowRenderer.tsx) - Recursive accordion renderer
 - [TileInfoBaseTemplate.tsx](../../src/pages/TeachingCourse/components/TileInfoBlocks/TileInfoBase/template/TileInfoBaseTemplate.tsx) - Base draggable block wrapper
 - [SortableColumnLayout.tsx](../../src/pages/TeachingCourse/components/SortableColumnLayout/SortableColumnLayout.tsx) - Column layout wrapper
@@ -889,7 +889,7 @@ type TileInfoBlock =
 | Old Term | New Term | Notes |
 |----------|----------|-------|
 | Row | Accordion | Renamed to better reflect collapsible container behavior |
-| TileInfoRow | TileInfoBlockAccordion | Now part of the block union type |
+| TileInfoAccordion | TileInfoBlockAccordion | Now part of the block union type |
 | Row level | Accordion level | Used in component props for collision detection |
 | `data` array | `children` array | Unified recursive array for all containers |
 | String levels ("tile", "row", "column") | Numeric levels (0, 1, 2+) | Type system uses numbers, but components still use strings for compatibility |
