@@ -129,6 +129,17 @@ export const BLOCK_REGISTRY = {
     icon: 'tag',
     component: lazy(() => import('../components/TileInfoBlocks/TileInfoTag/TileInfoTag')),
   },
+  divider: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Divider',
+    description: 'Add a visual separator between blocks',
+    icon: 'minus',
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoDivider/TileInfoDivider')),
+  },
 
   // Future blocks (commented examples):
   // image: {
@@ -280,6 +291,11 @@ export function getBlockIcon(type: BlockType, numColumns?: number): ReactNode {
       return createElement('svg', iconProps,
         createElement('path', { d: "M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" }),
         createElement('line', { x1: "7", y1: "7", x2: "7.01", y2: "7" })
+      );
+
+    case "divider":
+      return createElement('svg', iconProps,
+        createElement('line', { x1: "4", y1: "12", x2: "20", y2: "12" })
       );
 
     default:

@@ -125,6 +125,10 @@ type TileInfoBlockTag = TileInfoBlockBase & {
   tags: string[]; // List of tag values
 };
 
+type TileInfoBlockDivider = TileInfoBlockBase & {
+  type: "divider";
+};
+
 type TileInfoBlock =
   | TileInfoBlockAccordion // Collapsible container block
   | TileInfoColumnLayout // Layout container for columns
@@ -133,7 +137,8 @@ type TileInfoBlock =
   | TileInfoBlockText // Text block (might be omitted if tiptap is used)
   | TileInfoBlockParagraph // Paragraph block (TipTap)
   | TileInfoBlockDropdown // Dropdown/select block
-  | TileInfoBlockTag; // Tag block
+  | TileInfoBlockTag // Tag block
+  | TileInfoBlockDivider; // Divider block (decorative separator)
 
 /**
  *  ENUMS
