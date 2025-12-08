@@ -140,6 +140,17 @@ export const BLOCK_REGISTRY = {
     icon: 'minus',
     component: lazy(() => import('../components/TileInfoBlocks/TileInfoDivider/TileInfoDivider')),
   },
+  comment: {
+    category: 'content',
+    canHaveChildren: false,
+    canBeNested: true,
+    canBeInColumn: true,
+    canBeAtTileLevel: true,
+    displayName: 'Comment',
+    description: 'Add an info, warning, or error comment with rich text',
+    icon: 'message-square',
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoComment/TileInfoComment')),
+  },
 
   // Future blocks (commented examples):
   // image: {
@@ -296,6 +307,11 @@ export function getBlockIcon(type: BlockType, numColumns?: number): ReactNode {
     case "divider":
       return createElement('svg', iconProps,
         createElement('line', { x1: "4", y1: "12", x2: "20", y2: "12" })
+      );
+
+    case "comment":
+      return createElement('svg', iconProps,
+        createElement('path', { d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" })
       );
 
     default:

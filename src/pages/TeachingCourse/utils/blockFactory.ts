@@ -78,6 +78,15 @@ export function createBlock(
         type: "divider",
       } as TileInfoBlockDivider;
 
+    case "comment":
+      return {
+        ...baseFields,
+        type: "comment",
+        name,
+        commentType: "info",
+        data: {},
+      } as TileInfoBlockComment;
+
     case "dropdown":
       return {
         ...baseFields,

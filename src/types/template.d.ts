@@ -129,6 +129,13 @@ type TileInfoBlockDivider = TileInfoBlockBase & {
   type: "divider";
 };
 
+type TileInfoBlockComment = TileInfoBlockBase & {
+  type: "comment";
+  name: string;
+  commentType: "info" | "warning" | "error"; // Type determines icon and color
+  data: Record<string, unknown>; // TipTap content
+};
+
 type TileInfoBlock =
   | TileInfoBlockAccordion // Collapsible container block
   | TileInfoColumnLayout // Layout container for columns
@@ -138,7 +145,8 @@ type TileInfoBlock =
   | TileInfoBlockParagraph // Paragraph block (TipTap)
   | TileInfoBlockDropdown // Dropdown/select block
   | TileInfoBlockTag // Tag block
-  | TileInfoBlockDivider; // Divider block (decorative separator)
+  | TileInfoBlockDivider // Divider block (decorative separator)
+  | TileInfoBlockComment; // Comment block (info/warning/error with TipTap editor)
 
 /**
  *  ENUMS
