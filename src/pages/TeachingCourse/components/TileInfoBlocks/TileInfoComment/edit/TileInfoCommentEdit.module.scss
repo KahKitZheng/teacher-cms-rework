@@ -1,0 +1,28 @@
+.comment-edit {
+  padding: 16px;
+  border-left: 4px solid;
+  border-radius: 6px;
+  background: var(--background-secondary, #f5f5f5);
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.comment-content {
+  color: var(--text-secondary, #666);
+  line-height: 1.6;
+
+  p {
+    margin: 0 0 8px 0;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
