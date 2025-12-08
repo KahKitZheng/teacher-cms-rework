@@ -30,7 +30,7 @@ export default function TileInfoHeadingTemplate(
     isPreview,
   } = props;
 
-  const [heading, setHeading] = useState(tileInfo.name);
+  const [heading, setHeading] = useState(tileInfo.data?.name || "");
 
   function handleHeadingChange(event: ChangeEvent<HTMLInputElement>) {
     setHeading(event.target.value);
@@ -38,7 +38,7 @@ export default function TileInfoHeadingTemplate(
 
   return (
     <TileInfoBaseTemplate
-      title={tileInfo.name}
+      title={tileInfo.data?.name || "Heading"}
       blockId={tileInfo.id}
       activeBlockId={activeBlockId}
       activeId={activeId}

@@ -55,7 +55,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                       <div
                         key={column.id}
                         style={{
-                          flex: column.width || "1",
+                          flex: "1",
                           display: "flex",
                           flexDirection: "column",
                           gap: "24px",
@@ -92,7 +92,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
                               <div
                                 key={column.id}
                                 style={{
-                                  flex: column.width || "1",
+                                  flex: "1",
                                   display: "flex",
                                   flexDirection: "column",
                                   gap: "24px"
@@ -145,7 +145,7 @@ export default function TileInfoOverlay(props: Readonly<TileInfoOverlayProps>) {
               <div
                 key={column.id}
                 style={{
-                  flex: column.width || "1",
+                  flex: "1",
                   display: "flex",
                   flexDirection: "column",
                   gap: "24px",

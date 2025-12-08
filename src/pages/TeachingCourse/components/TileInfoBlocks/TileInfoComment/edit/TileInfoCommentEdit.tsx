@@ -17,7 +17,7 @@ export default function TileInfoCommentEdit(
   props: Readonly<TileInfoCommentEditProps>
 ) {
   const { tileInfo } = props;
-  const config = commentTypeConfig[tileInfo.commentType];
+  const config = commentTypeConfig[tileInfo.data?.commentType || "info"];
   const Icon = config.icon;
 
   return (
@@ -27,11 +27,11 @@ export default function TileInfoCommentEdit(
     >
       <div styleName="comment-header" style={{ color: config.color }}>
         <Icon size={20} />
-        <span>{tileInfo.name || "Comment"}</span>
+        <span>{tileInfo.data?.name || "Comment"}</span>
       </div>
       <div styleName="comment-content">
         <TipTapEditor
-          content={tileInfo.data || ""}
+          content={tileInfo.data?.content || ""}
           editable={true}
           placeholder="Enter comment content..."
           minHeight="100px"

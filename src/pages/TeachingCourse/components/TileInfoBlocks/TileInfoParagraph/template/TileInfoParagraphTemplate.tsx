@@ -34,7 +34,7 @@ export default function TileInfoParagraphTemplate(
 
   return (
     <TileInfoBaseTemplate
-      title={tileInfo.name}
+      title={tileInfo.data?.name || "Paragraph"}
       blockId={tileInfo.id}
       activeBlockId={activeBlockId}
       activeId={activeId}
@@ -49,7 +49,7 @@ export default function TileInfoParagraphTemplate(
     >
       <div styleName="editor-section">
         <TipTapEditor
-          content={tileInfo.data || ""}
+          content={tileInfo.data?.content || ""}
           editable={!isPreview}
           placeholder="Enter paragraph content..."
         />

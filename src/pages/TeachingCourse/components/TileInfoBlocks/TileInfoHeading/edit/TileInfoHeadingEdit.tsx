@@ -12,7 +12,7 @@ export default function TileInfoHeadingEdit(
 
   return (
     <div styleName="heading-edit">
-      <h2 styleName="heading">{tileInfo.name}</h2>
+      <h2 styleName="heading">{tileInfo.data?.name || "Heading"}</h2>
     </div>
   );
 }

@@ -86,11 +86,11 @@ export default function TileInfoCommentTemplate(
   } = props;
 
   const [selectedType, setSelectedType] = useState<CommentTypeOption>(
-    commentTypeOptions.find((opt) => opt.value === tileInfo.commentType) ||
+    commentTypeOptions.find((opt) => opt.value === tileInfo.data?.commentType) ||
       commentTypeOptions[0]
   );
-  const [title, setTitle] = useState(tileInfo.name || "");
-  const [content, setContent] = useState(tileInfo.data || "");
+  const [title, setTitle] = useState(tileInfo.data?.name || "");
+  const [content, setContent] = useState(tileInfo.data?.content || "");
 
   const Icon = selectedType.icon;
 

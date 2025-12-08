@@ -12,7 +12,7 @@ export default function TileInfoHeadingRead(
 
   return (
     <div styleName="heading-read">
-      <h2 styleName="heading">{tileInfo.name}</h2>
+      <h2 styleName="heading">{tileInfo.data?.name || "Heading"}</h2>
     </div>
   );
 }

@@ -11,9 +11,8 @@ export default function TileInfoTextEdit(
   props: Readonly<TileInfoTextEditProps>
 ) {
   const { tileInfo } = props;
-  const textData = tileInfo;
 
-  const [text, setText] = useState(textData.data);
+  const [text, setText] = useState(tileInfo.data?.content || "");
 
   function handleTextChange(event: ChangeEvent<HTMLInputElement>) {
     setText(event.target.value);
@@ -22,12 +21,12 @@ export default function TileInfoTextEdit(
   return (
     <div styleName="tile-info-block-text">
       <div styleName="header">
-        <p styleName="title">{tileInfo.name}</p>
+        <p styleName="title">{tileInfo.data?.name || "Text"}</p>
       </div>
       <input
         type="text"
         value={text}
-        placeholder={textData.placeholder?.template || ""}
+        placeholder="Enter text..."
         styleName="text-input"
         onChange={handleTextChange}
       />

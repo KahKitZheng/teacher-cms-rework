@@ -54,9 +54,11 @@ type TileInfoBlockBase = {
 // Accordion/Collapse block - A container block that can hold other blocks (including nested accordions)
 type TileInfoBlockAccordion = TileInfoBlockBase & {
   type: "accordion";
-  icon?: string;
-  name: string; // Title/header of the accordion
   children: TileInfoBlock[]; // Recursive: can contain any blocks including nested accordions!
+  data: {
+    name: string; // Title/header of the accordion
+    icon?: string;
+  };
 };
 
 // Column layout - A container for column blocks
@@ -64,14 +66,15 @@ type TileInfoColumnLayout = TileInfoBlockBase & {
   type: "columnLayout";
   parentId: number; // References parent accordion.id (required for layouts)
   children: TileInfoBlockColumn[]; // Contains column blocks (fully recursive!)
+  data?: never; // No block-specific data for layout containers
 };
 
 // Column block - A single column within a column layout
 type TileInfoBlockColumn = TileInfoBlockBase & {
   type: "column";
   parentId: number; // References parent columnLayout.id (required for columns)
-  width?: string; // Optional: CSS width/flex value (e.g., "1fr", "2fr", "300px")
   children: TileInfoBlock[]; // Recursive: can contain any blocks including accordions!
+  data?: never; // No block-specific data for column
 };
 
 type TileInfoSelectOption = {
@@ -84,22 +87,28 @@ type TileInfoSelectOption = {
 
 type TileInfoBlockText = TileInfoBlockBase & {
   type: "text";
-  name: string;
-  data: string;
+  data: {
+    name: string;
+    content: string;
+  };
 };
 
 type TileInfoBlockParagraph = TileInfoBlockBase & {
   type: "paragraph";
-  name: string;
-  data: Record<string, unknown>; // TipTap for sure
+  data: {
+    name: string;
+    content: Record<string, unknown>; // TipTap JSON
+  };
 };
 
 // TileInfo - Reusable object types
 type TileInfoBlockHeading = TileInfoBlockBase & {
   type: "heading";
-  icon?: string; // Optional icon for all heading levels (typically used for h2-h6)
-  name: string; // Heading text content
-  headingLevel?: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"; // HTML heading level (defaults to h2)
+  data: {
+    name: string; // Heading text content
+    icon?: string; // Optional icon for all heading levels (typically used for h2-h6)
+    headingLevel: "h1" | "h2" | "h3" | "h4" | "h5" | "h6"; // HTML heading level (defaults to h2)
+  };
   // Heading level guidelines (within a SINGLE tile):
   // - h1: Main tile title (ONE per tile maximum, usually no icon)
   //       Multiple tiles on the same page can each have their own h1
@@ -114,26 +123,33 @@ type TileInfoBlockHeading = TileInfoBlockBase & {
 
 type TileInfoBlockDropdown = TileInfoBlockBase & {
   type: "dropdown";
-  name: string;
-  options: TileInfoSelectOption[];
+  data: {
+    name: string;
+    options: TileInfoSelectOption[];
+  };
 };
 
 type TileInfoBlockTag = TileInfoBlockBase & {
   type: "tag";
-  name: string;
-  tagType: string; // Category dropdown (e.g., "kerndoel", "begrippen")
-  tags: string[]; // List of tag values
+  data: {
+    name: string;
+    tagType: string; // Category dropdown (e.g., "kerndoel", "begrippen")
+    tags: string[]; // List of tag values
+  };
 };
 
 type TileInfoBlockDivider = TileInfoBlockBase & {
   type: "divider";
+  data?: never; // No block-specific data for divider
 };
 
 type TileInfoBlockComment = TileInfoBlockBase & {
   type: "comment";
-  name: string;
-  commentType: "info" | "warning" | "error"; // Type determines icon and color
-  data: Record<string, unknown>; // TipTap content
+  data: {
+    name: string;
+    commentType: "info" | "warning" | "error"; // Type determines icon and color
+    content: Record<string, unknown>; // TipTap JSON
+  };
 };
 
 type TileInfoBlock =

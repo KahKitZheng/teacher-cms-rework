@@ -15,11 +15,11 @@ export default function TileInfoParagraphEdit(
   return (
     <div styleName="tile-info-block-paragraph">
       <div styleName="header">
-        <p styleName="title">{tileInfo.name}</p>
+        <p styleName="title">{tileInfo.data?.name || "Paragraph"}</p>
       </div>
       <div styleName="editor-wrapper">
         <TipTapEditor
-          content={tileInfo.data || ""}
+          content={tileInfo.data?.content || ""}
           editable={true}
           placeholder="Enter paragraph content..."
           minHeight="100px"

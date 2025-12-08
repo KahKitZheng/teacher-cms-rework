@@ -10,14 +10,13 @@ export default function TileInfoTextRead(
   props: Readonly<TileInfoTextReadProps>
 ) {
   const { tileInfo } = props;
-  const textData = tileInfo;
 
   return (
     <div styleName="tile-info-block-text">
       <div styleName="header">
-        <p styleName="title">{tileInfo.name}</p>
+        <p styleName="title">{tileInfo.data?.name || "Text"}</p>
       </div>
-      <p>{textData.data}</p>
+      <p>{tileInfo.data?.content || ""}</p>
     </div>
   );
 }

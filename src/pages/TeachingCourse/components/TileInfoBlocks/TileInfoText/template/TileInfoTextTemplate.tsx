@@ -31,9 +31,7 @@ export default function TileInfoTextTemplate(
     onDeleteElement,
     isPreview,
   } = props;
-  const textData = tileInfo;
-
-  const [text, setText] = useState(textData.data);
+  const [text, setText] = useState(tileInfo.data?.content || "");
 
   function handleTextChange(event: ChangeEvent<HTMLInputElement>) {
     setText(event.target.value);
@@ -41,7 +39,7 @@ export default function TileInfoTextTemplate(
 
   return (
     <TileInfoBaseTemplate
-      title={tileInfo.name}
+      title={tileInfo.data?.name || "Text"}
       blockId={tileInfo.id}
       activeBlockId={activeBlockId}
       activeId={activeId}
