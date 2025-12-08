@@ -25,6 +25,7 @@ import {
 } from "@dnd-kit/sortable";
 import { useHoverDetection } from "../../hooks/useHoverDetection";
 import { createCustomCollisionDetection } from "../../utils/collisionDetection";
+import { createBlock } from "../../utils/blockFactory";
 import {
   handleDragStart as handleDragStartUtil,
   handleRowDragEnd,
@@ -293,70 +294,6 @@ export default function TeachingCourseTemplate() {
     });
   }
 
-  // Helper function to create a new block based on type
-  function createBlock(
-    blockId: number,
-    type: ContentBlockType,
-    level: number,
-    order: number,
-    name: string = "",
-    parentId?: number
-  ): TileInfoBlock {
-    const baseFields = {
-      id: blockId,
-      level,
-      order,
-      parentId,
-    };
-
-    // Use switch for better type narrowing and exhaustiveness checking
-    switch (type) {
-      case "text":
-        return {
-          ...baseFields,
-          type: "text",
-          name,
-          data: "",
-        } as TileInfoBlockText;
-
-      case "paragraph":
-        return {
-          ...baseFields,
-          type: "paragraph",
-          name,
-          data: {},
-        } as TileInfoBlockParagraph;
-
-      case "heading":
-        return {
-          ...baseFields,
-          type: "heading",
-          name,
-        } as TileInfoBlockHeading;
-
-      case "tag":
-        return {
-          ...baseFields,
-          type: "tag",
-          name,
-          tagType: "",
-          tags: [],
-        } as TileInfoBlockTag;
-
-      case "dropdown":
-        return {
-          ...baseFields,
-          type: "dropdown",
-          name,
-          options: [],
-        } as TileInfoBlockDropdown;
-
-      default:
-        // This should never happen if ContentBlockType is correctly maintained
-        throw new Error(`Unsupported content block type: ${type}`);
-    }
-  }
-
   // Handle row selection (add or edit)
   function handleRowSelect() {
     // Add new accordion
@@ -371,16 +308,13 @@ export default function TeachingCourseTemplate() {
         function findAndAddNestedAccordion(children: TileInfoBlock[], targetId: number): boolean {
           for (const child of children) {
             if (child.type === "accordion" && child.id === targetId) {
-              const newAccordion: TileInfoBlockAccordion = {
-                type: "accordion",
-                level: child.level, // Same level as parent
-                id: newAccordionId,
-                order: child.children.length, // Order within parent
-                parentId: targetId,
-                icon: "eye",
-                name: "",
-                children: [], // Start with empty children
-              };
+              const newAccordion = createBlock(
+                newAccordionId,
+                "accordion",
+                child.level, // Same level as parent
+                child.children.length, // Order within parent
+                { parentId: targetId }
+              );
               child.children.push(newAccordion);
               return true;
             }
@@ -396,15 +330,12 @@ export default function TeachingCourseTemplate() {
         findAndAddNestedAccordion(tile.children, targetRowId);
       } else {
         // Adding top-level accordion
-        const newAccordion: TileInfoBlockAccordion = {
-          type: "accordion",
-          level: 0, // Tile level = 0
-          id: newAccordionId,
-          order: tile.children.length, // Total count of tile-level items
-          icon: "eye",
-          name: "",
-          children: [], // Start with empty children
-        };
+        const newAccordion = createBlock(
+          newAccordionId,
+          "accordion",
+          0, // Tile level = 0
+          tile.children.length // Total count of tile-level items
+        );
         tile.children.push(newAccordion);
       }
 
@@ -439,8 +370,10 @@ export default function TeachingCourseTemplate() {
           type,
           oldBlock.level,
           oldBlock.order,
-          oldBlock.name,
-          oldBlock.parentId
+          {
+            name: oldBlock.name,
+            parentId: oldBlock.parentId
+          }
         );
 
         // Update block in the correct location
@@ -482,8 +415,10 @@ export default function TeachingCourseTemplate() {
                 type,
                 child.level, // Same level as parent row
                 child.children.length, // Order within row
-                "",
-                targetId
+                {
+                  name: "",
+                  parentId: targetId
+                }
               );
               child.children.push(newBlock);
               return true;
@@ -512,8 +447,10 @@ export default function TeachingCourseTemplate() {
                   type,
                   child.level, // Same level as layout
                   columnWithFewestBlocks.children.length, // Order within column
-                  "",
-                  columnWithFewestBlocks.id // Parent is the column
+                  {
+                    name: "",
+                    parentId: columnWithFewestBlocks.id // Parent is the column
+                  }
                 );
                 columnWithFewestBlocks.children.push(newBlock);
                 return true;
@@ -538,7 +475,7 @@ export default function TeachingCourseTemplate() {
             type,
             0, // Tile level = 0
             tile.children.length, // Order within tile
-            ""
+            { name: "" }
           );
           tile.children.push(newBlock);
         }
@@ -577,25 +514,17 @@ export default function TeachingCourseTemplate() {
       function findAndAddLayout(children: TileInfoBlock[]): boolean {
         for (const child of children) {
           if (child.type === "accordion" && child.id === targetRowId) {
-            // Dynamically create N columns
-            const columns: TileInfoBlockColumn[] = Array.from({ length: numColumns }, (_, i) => ({
-              type: "column",
-              level: child.level,
-              id: +randomId(),
-              order: i,
-              parentId: newLayoutId,
-              width: "1fr",
-              children: [],
-            }));
-
-            const newColumnLayout: TileInfoColumnLayout = {
-              type: "columnLayout",
-              level: child.level,
-              id: newLayoutId,
-              order: child.children.length,
-              parentId: targetRowId,
-              children: columns,
-            };
+            const newColumnLayout = createBlock(
+              newLayoutId,
+              "columnLayout",
+              child.level,
+              child.children.length,
+              {
+                parentId: targetRowId,
+                numColumns,
+                generateColumnId: () => +randomId()
+              }
+            );
 
             child.children.push(newColumnLayout);
             return true;

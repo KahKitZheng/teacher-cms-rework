@@ -9,6 +9,7 @@ import {
   getBlockIcon,
   getBlockPreviewFallback,
 } from "../../utils/blockRegistry";
+import { createMockBlock } from "../../utils/blockFactory";
 
 // Use BlockType from registry instead of hardcoded union
 type ElementType = BlockType;
@@ -132,77 +133,6 @@ export default function ElementPickerModal(
   const renderBlockIcon = (type: ElementType) => {
     // Use registry-based icon rendering
     return getBlockIcon(type, numColumns);
-  };
-
-  // Helper to create mock block data for preview
-  const createMockBlock = (
-    type: ElementType,
-    options?: { columns?: number; variant?: string }
-  ): TileInfoBlock => {
-    const baseBlock = {
-      id: -1, // Mock ID for preview
-      name: "Preview Block",
-      level: 0, // 0 = tile level
-      order: 0,
-    };
-
-    switch (type) {
-      case "accordion":
-        return {
-          ...baseBlock,
-          type: "accordion",
-          children: [],
-        } as TileInfoBlockAccordion;
-
-      case "text":
-        return {
-          ...baseBlock,
-          type: "text",
-          data: "",
-        } as TileInfoBlockText;
-
-      case "heading":
-        return {
-          ...baseBlock,
-          type: "heading",
-          headingLevel: (options?.variant || "h2") as
-            | "h1"
-            | "h2"
-            | "h3"
-            | "h4"
-            | "h5"
-            | "h6",
-        } as TileInfoBlockHeading;
-
-      case "dropdown":
-        return {
-          ...baseBlock,
-          type: "dropdown",
-          options: [],
-        } as TileInfoBlockDropdown;
-
-      case "tag":
-        return {
-          ...baseBlock,
-          type: "tag",
-          tagType: "",
-          tags: ["example-tag"],
-        } as TileInfoBlockTag;
-
-      case "columnLayout":
-        return {
-          ...baseBlock,
-          type: "columnLayout",
-          parentId: -1,
-          children: [],
-        } as TileInfoColumnLayout;
-
-      default:
-        return {
-          ...baseBlock,
-          type: type as any,
-        } as any;
-    }
   };
 
   // Render actual block component for preview
