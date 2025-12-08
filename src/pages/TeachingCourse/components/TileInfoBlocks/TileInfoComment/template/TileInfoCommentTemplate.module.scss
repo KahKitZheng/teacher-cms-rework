@@ -45,25 +45,11 @@
 }
 
 .editor-section {
-  :global(.tiptap-editor) {
-    min-height: 150px;
-    padding: 12px;
-    border: 1px solid var(--border-color, #e0e0e0);
-    border-radius: 6px;
-    outline: none;
-
-    &:focus {
-      border-color: var(--primary-color, #60a5fa);
-    }
-
-    p {
-      margin: 0 0 8px 0;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
+  width: 100%;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 12px;
+  background-color: var(--background-primary, #ffffff);
 }
 
 .preview-section {
@@ -83,6 +69,5 @@
 }
 
 .preview-content {
-  color: var(--text-secondary, #666);
-  line-height: 1.6;
+  width: 100%;
 }

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import TileInfoBaseTemplate from "../../TileInfoBase/template/TileInfoBaseTemplate";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import TipTapEditor from "../../../shared/TipTapEditor";
 import { Info, AlertTriangle, AlertCircle } from "lucide-react";
 import Select from "react-select";
 import "./TileInfoCommentTemplate.module.scss";
@@ -91,17 +90,7 @@ export default function TileInfoCommentTemplate(
       commentTypeOptions[0]
   );
   const [title, setTitle] = useState(tileInfo.name || "");
-
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: tileInfo.data || "",
-    editable: !isPreview,
-    editorProps: {
-      attributes: {
-        class: "tiptap-editor",
-      },
-    },
-  });
+  const [content, setContent] = useState(tileInfo.data || "");
 
   const Icon = selectedType.icon;
 
@@ -191,7 +180,12 @@ export default function TileInfoCommentTemplate(
 
         {/* TipTap Editor */}
         <div styleName="editor-section">
-          <EditorContent editor={editor} />
+          <TipTapEditor
+            content={content}
+            editable={!isPreview}
+            placeholder="Enter comment content..."
+            onChange={(newContent) => setContent(newContent)}
+          />
         </div>
 
         {/* Preview section */}
@@ -204,7 +198,11 @@ export default function TileInfoCommentTemplate(
             <span>{title || "Placeholder..."}</span>
           </div>
           <div styleName="preview-content">
-            {editor?.getText() || "Placeholder..."}
+            <TipTapEditor
+              content={content}
+              editable={false}
+              minHeight="auto"
+            />
           </div>
         </div>
       </div>

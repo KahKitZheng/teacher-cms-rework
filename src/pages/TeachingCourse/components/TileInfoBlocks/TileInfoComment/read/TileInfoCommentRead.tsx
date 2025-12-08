@@ -1,4 +1,5 @@
 import { Info, AlertTriangle, AlertCircle } from "lucide-react";
+import TipTapEditor from "../../../shared/TipTapEditor";
 import "./TileInfoCommentRead.module.scss";
 
 export type TileInfoCommentReadProps = {
@@ -29,8 +30,11 @@ export default function TileInfoCommentRead(
         <span>{tileInfo.name || "Comment"}</span>
       </div>
       <div styleName="comment-content">
-        {/* TODO: Render TipTap content */}
-        <p>Comment content will be rendered here</p>
+        <TipTapEditor
+          content={tileInfo.data || ""}
+          editable={false}
+          minHeight="auto"
+        />
       </div>
     </div>
   );

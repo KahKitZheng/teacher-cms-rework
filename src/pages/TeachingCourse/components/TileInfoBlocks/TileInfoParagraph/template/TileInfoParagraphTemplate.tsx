@@ -1,6 +1,5 @@
 import TileInfoBaseTemplate from "../../TileInfoBase/template/TileInfoBaseTemplate";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import TipTapEditor from "../../../shared/TipTapEditor";
 import "./TileInfoParagraphTemplate.module.scss";
 
 export type TileInfoParagraphTemplateProps = {
@@ -33,17 +32,6 @@ export default function TileInfoParagraphTemplate(
     isPreview,
   } = props;
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: tileInfo.data || "",
-    editable: !isPreview,
-    editorProps: {
-      attributes: {
-        class: "tiptap-editor",
-      },
-    },
-  });
-
   return (
     <TileInfoBaseTemplate
       title={tileInfo.name}
@@ -60,7 +48,11 @@ export default function TileInfoParagraphTemplate(
       }}
     >
       <div styleName="editor-section">
-        <EditorContent editor={editor} />
+        <TipTapEditor
+          content={tileInfo.data || ""}
+          editable={!isPreview}
+          placeholder="Enter paragraph content..."
+        />
       </div>
     </TileInfoBaseTemplate>
   );

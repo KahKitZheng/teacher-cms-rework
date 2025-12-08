@@ -1,5 +1,4 @@
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
+import TipTapEditor from "../../../shared/TipTapEditor";
 import "./TileInfoParagraphRead.module.scss";
 
 export type TileInfoParagraphReadProps = {
@@ -13,24 +12,17 @@ export default function TileInfoParagraphRead(
 ) {
   const { tileInfo } = props;
 
-  const editor = useEditor({
-    extensions: [StarterKit],
-    content: tileInfo.data || "",
-    editable: false,
-    editorProps: {
-      attributes: {
-        class: "tiptap-editor-read",
-      },
-    },
-  });
-
   return (
     <div styleName="tile-info-block-paragraph">
       <div styleName="header">
         <p styleName="title">{tileInfo.name}</p>
       </div>
       <div styleName="content">
-        <EditorContent editor={editor} />
+        <TipTapEditor
+          content={tileInfo.data || ""}
+          editable={false}
+          minHeight="auto"
+        />
       </div>
     </div>
   );

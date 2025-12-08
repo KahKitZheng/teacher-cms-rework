@@ -15,14 +15,8 @@
 }
 
 .comment-content {
-  color: var(--text-secondary, #666);
-  line-height: 1.6;
-
-  p {
-    margin: 0 0 8px 0;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 12px;
+  background-color: var(--background-primary, #ffffff);
 }
