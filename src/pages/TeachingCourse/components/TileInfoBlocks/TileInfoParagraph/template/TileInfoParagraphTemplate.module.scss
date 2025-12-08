@@ -1,0 +1,60 @@
+.editor-section {
+  width: 100%;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 6px;
+  padding: 12px;
+  background-color: var(--background-primary, #ffffff);
+
+  :global(.tiptap-editor) {
+    min-height: 150px;
+    outline: none;
+
+    p {
+      margin: 0 0 0.5em 0;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+
+    ul, ol {
+      padding-left: 1.5em;
+      margin: 0.5em 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      margin: 1em 0 0.5em 0;
+      font-weight: 600;
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    code {
+      background-color: var(--background-secondary, #f5f5f5);
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+
+    pre {
+      background-color: var(--background-secondary, #f5f5f5);
+      padding: 0.75em 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+
+      code {
+        background-color: transparent;
+        padding: 0;
+      }
+    }
+
+    blockquote {
+      border-left: 3px solid var(--border-color, #e5e7eb);
+      padding-left: 1em;
+      margin: 1em 0;
+      color: var(--text-secondary, #6b7280);
+    }
+  }
+}

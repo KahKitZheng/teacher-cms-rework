@@ -115,8 +115,9 @@ export const BLOCK_REGISTRY = {
     canBeInColumn: true,
     canBeAtTileLevel: true,
     displayName: 'Paragraph',
+    description: 'Add a paragraph with rich text editing',
     icon: 'align-left',
-    component: lazy(() => import('../components/TileInfoBlocks/TileInfoText/TileInfoText')),
+    component: lazy(() => import('../components/TileInfoBlocks/TileInfoParagraph/TileInfoParagraph')),
   },
   tag: {
     category: 'content',
