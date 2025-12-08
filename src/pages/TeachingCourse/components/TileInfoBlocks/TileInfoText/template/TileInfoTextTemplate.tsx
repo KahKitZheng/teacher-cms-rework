@@ -13,6 +13,7 @@ export type TileInfoTextTemplateProps = {
   onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;
+  isPreview?: boolean;
 };
 
 export default function TileInfoTextTemplate(
@@ -28,6 +29,7 @@ export default function TileInfoTextTemplate(
     onAddElement,
     onEditElement,
     onDeleteElement,
+    isPreview,
   } = props;
   const textData = tileInfo;
 
@@ -46,6 +48,7 @@ export default function TileInfoTextTemplate(
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
       level={level}
+      isPreview={isPreview}
       actions={{
         update: onEditElement,
         delete: onDeleteElement,

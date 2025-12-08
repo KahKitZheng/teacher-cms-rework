@@ -1,16 +1,27 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Modal from "../../../../components/Modal/Modal";
 import "./ElementPickerModal.module.scss";
-import { BLOCK_REGISTRY, BlockType } from "../../utils/blockRegistry";
+import {
+  BLOCK_REGISTRY,
+  BlockType,
+  getTileLevelBlockTypes,
+  getBlockComponent,
+  getBlockIcon,
+  getBlockPreviewFallback,
+} from "../../utils/blockRegistry";
 
-type ElementType = "accordion" | "text" | "dropdown" | "columnLayout" | "heading";
+// Use BlockType from registry instead of hardcoded union
+type ElementType = BlockType;
 
 type ElementPickerModalProps = {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (type: ElementType, options?: { columns?: number; variant?: string }) => void;
+  onSelect: (
+    type: ElementType,
+    options?: { columns?: number; variant?: string }
+  ) => void;
   mode: "add" | "edit";
-  allowedTypes?: ("accordion" | "text" | "dropdown" | "columnLayout" | "heading")[];
+  allowedTypes?: BlockType[];
   initialSelection?: {
     type: ElementType;
     options?: { columns?: number; variant?: string };
@@ -20,14 +31,10 @@ type ElementPickerModalProps = {
 export default function ElementPickerModal(
   props: Readonly<ElementPickerModalProps>
 ) {
-  const {
-    isOpen,
-    onClose,
-    onSelect,
-    mode,
-    allowedTypes = ["accordion", "text", "dropdown"],
-    initialSelection,
-  } = props;
+  const { isOpen, onClose, onSelect, mode, initialSelection } = props;
+
+  // Dynamic: use all blocks that can be at tile level if not specified
+  const allowedTypes = props.allowedTypes ?? getTileLevelBlockTypes();
 
   const [selectedElement, setSelectedElement] = useState<{
     type: ElementType;
@@ -54,10 +61,16 @@ export default function ElementPickerModal(
         // Auto-select the first available element when adding
         const firstAllowedType = allowedTypes[0];
         if (firstAllowedType) {
-          if (firstAllowedType === 'heading') {
-            setSelectedElement({ type: firstAllowedType, options: { variant: selectedVariant } });
-          } else if (firstAllowedType === 'columnLayout') {
-            setSelectedElement({ type: firstAllowedType, options: { columns: numColumns } });
+          if (firstAllowedType === "heading") {
+            setSelectedElement({
+              type: firstAllowedType,
+              options: { variant: selectedVariant },
+            });
+          } else if (firstAllowedType === "columnLayout") {
+            setSelectedElement({
+              type: firstAllowedType,
+              options: { columns: numColumns },
+            });
           } else {
             setSelectedElement({ type: firstAllowedType });
           }
@@ -79,7 +92,10 @@ export default function ElementPickerModal(
   };
 
   const handleColumnLayoutClick = () => {
-    setSelectedElement({ type: "columnLayout", options: { columns: numColumns } });
+    setSelectedElement({
+      type: "columnLayout",
+      options: { columns: numColumns },
+    });
   };
 
   const handleConfirm = () => {
@@ -95,78 +111,162 @@ export default function ElementPickerModal(
   };
 
   // Helper to get blocks by category from registry
-  const getBlocksByCategory = (category: 'container' | 'layout' | 'content') => {
+  const getBlocksByCategory = (
+    category: "container" | "layout" | "content"
+  ) => {
     return Object.entries(BLOCK_REGISTRY)
-      .filter(([type, meta]) =>
-        meta.category === category &&
-        allowedTypes.includes(type as ElementType)
+      .filter(
+        ([type, meta]) =>
+          meta.category === category &&
+          allowedTypes.includes(type as ElementType)
       )
       .map(([type, meta]) => ({
         type: type as ElementType,
         displayName: meta.displayName,
-        description: 'description' in meta ? meta.description : undefined,
-        meta
+        description: "description" in meta ? meta.description : undefined,
+        meta,
       }));
   };
 
   // Helper to render icon for each block type
   const renderBlockIcon = (type: ElementType) => {
-    const iconProps = {
-      width: "32",
-      height: "32",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      strokeWidth: "2",
-      strokeLinecap: "round" as const,
-      strokeLinejoin: "round" as const,
+    // Use registry-based icon rendering
+    return getBlockIcon(type, numColumns);
+  };
+
+  // Helper to create mock block data for preview
+  const createMockBlock = (
+    type: ElementType,
+    options?: { columns?: number; variant?: string }
+  ): TileInfoBlock => {
+    const baseBlock = {
+      id: -1, // Mock ID for preview
+      name: "Preview Block",
+      level: 0, // 0 = tile level
+      order: 0,
     };
 
     switch (type) {
-      case 'accordion':
-        return (
-          <div styleName="layout-preview">
-            <div styleName="layout-single"></div>
-          </div>
-        );
-      case 'columnLayout':
-        return (
-          <div styleName="layout-preview">
-            <div styleName="layout-double">
-              {Array.from({ length: numColumns }).map((_, i) => (
-                <div key={i} styleName="layout-column"></div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'heading':
-        return (
-          <svg {...iconProps}>
-            <path d="M6 4v16M18 4v16M8 12h8" />
-          </svg>
-        );
-      case 'text':
-        return (
-          <svg {...iconProps}>
-            <line x1="4" y1="7" x2="20" y2="7" />
-            <line x1="4" y1="12" x2="20" y2="12" />
-            <line x1="4" y1="17" x2="14" y2="17" />
-          </svg>
-        );
-      case 'dropdown':
-        return (
-          <svg {...iconProps}>
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <path d="m9 11 3 3 3-3" />
-          </svg>
-        );
+      case "accordion":
+        return {
+          ...baseBlock,
+          type: "accordion",
+          children: [],
+        } as TileInfoBlockAccordion;
+
+      case "text":
+        return {
+          ...baseBlock,
+          type: "text",
+          data: "",
+        } as TileInfoBlockText;
+
+      case "heading":
+        return {
+          ...baseBlock,
+          type: "heading",
+          headingLevel: (options?.variant || "h2") as
+            | "h1"
+            | "h2"
+            | "h3"
+            | "h4"
+            | "h5"
+            | "h6",
+        } as TileInfoBlockHeading;
+
+      case "dropdown":
+        return {
+          ...baseBlock,
+          type: "dropdown",
+          options: [],
+        } as TileInfoBlockDropdown;
+
+      case "tag":
+        return {
+          ...baseBlock,
+          type: "tag",
+          tagType: "",
+          tags: ["example-tag"],
+        } as TileInfoBlockTag;
+
+      case "columnLayout":
+        return {
+          ...baseBlock,
+          type: "columnLayout",
+          parentId: -1,
+          children: [],
+        } as TileInfoColumnLayout;
+
       default:
-        return null;
+        return {
+          ...baseBlock,
+          type: type as any,
+        } as any;
     }
   };
 
-  const layoutBlocks = getBlocksByCategory('container').concat(getBlocksByCategory('layout'));
-  const contentBlocks = getBlocksByCategory('content');
+  // Render actual block component for preview
+  const renderBlockPreview = () => {
+    if (!selectedElement) {
+      return (
+        <div styleName="preview-empty">
+          <p>Select an element to see preview</p>
+        </div>
+      );
+    }
+
+    const BlockComponent = getBlockComponent(selectedElement.type);
+    if (!BlockComponent) return null;
+
+    const mockBlock = createMockBlock(
+      selectedElement.type,
+      selectedElement.options
+    );
+
+    // For layout blocks (accordion, columnLayout), show simplified preview
+    if (selectedElement.type === "accordion") {
+      return (
+        <div styleName="preview-row">
+          <div styleName="preview-row-column full"></div>
+        </div>
+      );
+    }
+
+    if (selectedElement.type === "columnLayout") {
+      return (
+        <div styleName="preview-row">
+          {Array.from({ length: selectedElement.options?.columns || 2 }).map(
+            (_, i) => (
+              <div key={i} styleName="preview-row-column half"></div>
+            )
+          )}
+        </div>
+      );
+    }
+
+    // For content blocks, render the actual component
+    return (
+      <div styleName="preview-block-wrapper">
+        <Suspense fallback={getBlockPreviewFallback(selectedElement.type)}>
+          <BlockComponent
+            variant="template"
+            tileInfo={mockBlock}
+            activeBlockId={null}
+            activeId={null}
+            hoveredBlockId={null}
+            isDragOverlay={false}
+            level="tile"
+            isPreview={true}
+          />
+        </Suspense>
+      </div>
+    );
+  };
+
+  const layoutBlocks = getBlocksByCategory("container").concat(
+    getBlocksByCategory("layout")
+  );
+  const contentBlocks = getBlocksByCategory("content");
 
   return (
     <Modal
@@ -191,7 +291,7 @@ export default function ElementPickerModal(
                         selectedElement?.type === type ? "selected" : ""
                       }`}
                       onClick={() => {
-                        if (type === 'columnLayout') {
+                        if (type === "columnLayout") {
                           handleColumnLayoutClick();
                         } else {
                           handleElementClick(type);
@@ -203,7 +303,9 @@ export default function ElementPickerModal(
                       </div>
                       <div styleName="element-info">
                         <div styleName="element-name">
-                          {type === 'columnLayout' ? `${numColumns}-Column Layout` : displayName}
+                          {type === "columnLayout"
+                            ? `${numColumns}-Column Layout`
+                            : displayName}
                         </div>
                         {description && (
                           <div styleName="element-description">
@@ -227,8 +329,10 @@ export default function ElementPickerModal(
                         selectedElement?.type === type ? "selected" : ""
                       }`}
                       onClick={() => {
-                        if (type === 'heading') {
-                          handleElementClick(type, { variant: selectedVariant });
+                        if (type === "heading") {
+                          handleElementClick(type, {
+                            variant: selectedVariant,
+                          });
                         } else {
                           handleElementClick(type);
                         }
@@ -254,136 +358,81 @@ export default function ElementPickerModal(
 
           {/* Preview area */}
           <div styleName="preview-area">
-            <div styleName="preview-content">
-              {selectedElement?.type === "accordion" && (
-                <div styleName="preview-row">
-                  <div styleName="preview-row-column full"></div>
-                </div>
-              )}
-
-              {selectedElement?.type === "columnLayout" && (
-                <div styleName="preview-row">
-                  {Array.from({ length: selectedElement.options?.columns || 2 }).map((_, i) => (
-                    <div key={i} styleName="preview-row-column half"></div>
-                  ))}
-                </div>
-              )}
-
-              {selectedElement?.type === "text" && (
-                <div styleName="preview-block">
-                  <div styleName="preview-block-header">Text Block</div>
-                  <div styleName="preview-block-content">
-                    <input
-                      type="text"
-                      placeholder="Enter text..."
-                      disabled
-                      styleName="preview-input"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {selectedElement?.type === "dropdown" && (
-                <div styleName="preview-block">
-                  <div styleName="preview-block-header">Dropdown Block</div>
-                  <div styleName="preview-block-content">
-                    <div styleName="preview-select">
-                      <span>Select option(s)</span>
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="m6 9 6 6 6-6" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {selectedElement?.type === "heading" && (
-                <div styleName="preview-block">
-                  <div styleName="preview-block-header">
-                    Heading Block - {selectedElement.options?.variant?.toUpperCase() || 'H2'}
-                  </div>
-                  <div styleName="preview-block-content">
-                    <input
-                      type="text"
-                      placeholder={`Enter ${selectedElement.options?.variant || 'h2'} heading...`}
-                      disabled
-                      styleName="preview-input heading"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!selectedElement && (
-                <div styleName="preview-empty">
-                  <p>Select an element to see preview</p>
-                </div>
-              )}
-            </div>
+            <div styleName="preview-content">{renderBlockPreview()}</div>
           </div>
 
           {/* Conditional options sidebar - only show if element has options */}
-          {selectedElement && (selectedElement.type === "columnLayout" || selectedElement.type === "heading") && (
-            <div styleName="options-sidebar">
-              <div styleName="options-header">Options</div>
-              <div styleName="options-content">
-                {/* Column count selector for columnLayout */}
-                {selectedElement.type === "columnLayout" && (
-                  <div styleName="option-group">
-                    <label styleName="option-label">Number of columns</label>
-                    <div styleName="option-buttons">
-                      {[2, 3, 4].map((num) => (
-                        <button
-                          key={num}
-                          styleName={`option-btn ${numColumns === num ? "active" : ""}`}
-                          onClick={() => {
-                            setNumColumns(num);
-                            setSelectedElement({ type: "columnLayout", options: { columns: num } });
-                          }}
-                        >
-                          {num}
-                        </button>
-                      ))}
+          {selectedElement &&
+            (selectedElement.type === "columnLayout" ||
+              selectedElement.type === "heading") && (
+              <div styleName="options-sidebar">
+                <div styleName="options-header">Options</div>
+                <div styleName="options-content">
+                  {/* Column count selector for columnLayout */}
+                  {selectedElement.type === "columnLayout" && (
+                    <div styleName="option-group">
+                      <label styleName="option-label">Number of columns</label>
+                      <div styleName="option-buttons">
+                        {[2, 3, 4].map((num) => (
+                          <button
+                            key={num}
+                            styleName={`option-btn ${
+                              numColumns === num ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              setNumColumns(num);
+                              setSelectedElement({
+                                type: "columnLayout",
+                                options: { columns: num },
+                              });
+                            }}
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Variant selector for heading */}
-                {selectedElement.type === "heading" && BLOCK_REGISTRY.heading.variants && (
-                  <div styleName="option-group">
-                    <label styleName="option-label">Heading Level</label>
-                    <div styleName="option-buttons-vertical">
-                      {BLOCK_REGISTRY.heading.variants.map((variant) => (
-                        <button
-                          key={variant.value}
-                          styleName={`option-btn-full ${selectedVariant === variant.value ? "active" : ""}`}
-                          onClick={() => {
-                            setSelectedVariant(variant.value);
-                            setSelectedElement({
-                              type: "heading",
-                              options: { variant: variant.value }
-                            });
-                          }}
-                          title={variant.description}
-                        >
-                          <span styleName="option-btn-label">{variant.label}</span>
-                          {variant.description && (
-                            <span styleName="option-btn-desc">{variant.description}</span>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  {/* Variant selector for heading */}
+                  {selectedElement.type === "heading" &&
+                    BLOCK_REGISTRY.heading.variants && (
+                      <div styleName="option-group">
+                        <label styleName="option-label">Heading Level</label>
+                        <div styleName="option-buttons-vertical">
+                          {BLOCK_REGISTRY.heading.variants.map((variant) => (
+                            <button
+                              key={variant.value}
+                              styleName={`option-btn-full ${
+                                selectedVariant === variant.value
+                                  ? "active"
+                                  : ""
+                              }`}
+                              onClick={() => {
+                                setSelectedVariant(variant.value);
+                                setSelectedElement({
+                                  type: "heading",
+                                  options: { variant: variant.value },
+                                });
+                              }}
+                              title={variant.description}
+                            >
+                              <span styleName="option-btn-label">
+                                {variant.label}
+                              </span>
+                              {variant.description && (
+                                <span styleName="option-btn-desc">
+                                  {variant.description}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </div>
 
         {/* Footer - Full width */}

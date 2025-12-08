@@ -39,7 +39,17 @@ import {
 } from "../../utils/dragDropHelpers";
 import { DRAG_STYLES } from "../../utils/dragDropConstants";
 import { randomId } from "../../utils/randomId";
-import { isContentBlock, isContainer } from "../../utils/blockRegistry";
+import {
+  isContentBlock,
+  isContainer,
+  BlockType,
+  ContentBlockType,
+  getTileLevelBlockTypes,
+  getNestableBlockTypes,
+  getColumnBlockTypes,
+  getContentBlockTypes,
+  getContainerBlockTypes,
+} from "../../utils/blockRegistry";
 
 export default function TeachingCourseTemplate() {
   const [tileInfo, setTileInfo] = useState(tilesData);
@@ -48,15 +58,15 @@ export default function TeachingCourseTemplate() {
   const [activeLayoutId, setActiveLayoutId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [modalAllowedTypes, setModalAllowedTypes] = useState<
-    ("accordion" | "text" | "dropdown" | "columnLayout" | "heading")[]
-  >(["accordion", "text", "dropdown", "heading"]);
+  const [modalAllowedTypes, setModalAllowedTypes] = useState<BlockType[]>(
+    getTileLevelBlockTypes() // Dynamic: defaults to all tile-level blocks
+  );
   const [targetRowId, setTargetRowId] = useState<number | null>(null);
   const [targetLayoutId, setTargetLayoutId] = useState<number | null>(null);
   const [editingBlockId, setEditingBlockId] = useState<number | null>(null);
   const [initialSelection, setInitialSelection] = useState<
     | {
-        type: "accordion" | "text" | "dropdown" | "columnLayout" | "heading";
+        type: BlockType;
         options?: { columns?: number };
       }
     | undefined
@@ -138,12 +148,7 @@ export default function TeachingCourseTemplate() {
 
   function handleOpenModal(
     mode: "add" | "edit",
-    allowedTypes: ("accordion" | "text" | "dropdown" | "columnLayout" | "heading")[] = [
-      "accordion",
-      "text",
-      "dropdown",
-      "heading",
-    ],
+    allowedTypes: BlockType[] = getTileLevelBlockTypes(), // Dynamic default
     rowId: number | null = null,
     blockId: number | null = null
   ) {
@@ -162,7 +167,8 @@ export default function TeachingCourseTemplate() {
       } else if (blockId !== null) {
         // Editing a block - find its type
         const block = getAllBlocks(tileInfo).find((b) => b.id === blockId);
-        if (block && isContentBlock(block) && (block.type === "text" || block.type === "dropdown" || block.type === "heading")) {
+        if (block && isContentBlock(block)) {
+          // All content blocks can be edited
           setInitialSelection({ type: block.type });
         }
       }
@@ -290,7 +296,7 @@ export default function TeachingCourseTemplate() {
   // Helper function to create a new block based on type
   function createBlock(
     blockId: number,
-    type: "text" | "dropdown" | "heading",
+    type: ContentBlockType,
     level: number,
     order: number,
     name: string = "",
@@ -303,29 +309,52 @@ export default function TeachingCourseTemplate() {
       parentId,
     };
 
-    if (type === "text") {
-      return {
-        ...baseFields,
-        type: "text",
-        name,
-        data: "",
-        placeholder: { template: "Enter text..." },
-      } as TileInfoBlockText;
+    // Use switch for better type narrowing and exhaustiveness checking
+    switch (type) {
+      case "text":
+        return {
+          ...baseFields,
+          type: "text",
+          name,
+          data: "",
+        } as TileInfoBlockText;
+
+      case "paragraph":
+        return {
+          ...baseFields,
+          type: "paragraph",
+          name,
+          data: {},
+        } as TileInfoBlockParagraph;
+
+      case "heading":
+        return {
+          ...baseFields,
+          type: "heading",
+          name,
+        } as TileInfoBlockHeading;
+
+      case "tag":
+        return {
+          ...baseFields,
+          type: "tag",
+          name,
+          tagType: "",
+          tags: [],
+        } as TileInfoBlockTag;
+
+      case "dropdown":
+        return {
+          ...baseFields,
+          type: "dropdown",
+          name,
+          options: [],
+        } as TileInfoBlockDropdown;
+
+      default:
+        // This should never happen if ContentBlockType is correctly maintained
+        throw new Error(`Unsupported content block type: ${type}`);
     }
-    if (type === "heading") {
-      return {
-        ...baseFields,
-        type: "heading",
-        name,
-      } as TileInfoBlockHeading;
-    }
-    return {
-      ...baseFields,
-      type: "dropdown",
-      name,
-      placeholder: { template: "Select option(s)" },
-      options: [],
-    } as TileInfoBlockDropdown;
   }
 
   // Handle row selection (add or edit)
@@ -385,7 +414,7 @@ export default function TeachingCourseTemplate() {
   }
 
   // Handle block selection (add or edit)
-  function handleBlockSelect(type: "text" | "dropdown" | "heading") {
+  function handleBlockSelect(type: ContentBlockType) {
     if (modalMode === "edit" && editingBlockId !== null) {
       // Edit existing block - change its type
       setTileInfo((prev) => {
@@ -522,15 +551,16 @@ export default function TeachingCourseTemplate() {
 
   // Main handler for element selection
   function handleElementSelect(
-    type: "accordion" | "text" | "dropdown" | "columnLayout" | "heading",
-    options?: { columns?: number }
+    type: BlockType,
+    options?: { columns?: number; variant?: string }
   ) {
     if (type === "accordion") {
       handleRowSelect();
     } else if (type === "columnLayout") {
       handleColumnLayoutSelect(options?.columns || 2);
-    } else {
-      handleBlockSelect(type);
+    } else if (isContentBlock({ type } as TileInfoBlock)) {
+      // Dynamically handle all content blocks
+      handleBlockSelect(type as ContentBlockType);
     }
   }
 
@@ -590,7 +620,7 @@ export default function TeachingCourseTemplate() {
   function handleAddBlockToColumnLayout(layoutId: number) {
     setTargetLayoutId(layoutId);
     setTargetRowId(null); // Clear row ID since we're targeting a layout
-    handleOpenModal("add", ["text", "dropdown", "heading"], null, null);
+    handleOpenModal("add", getColumnBlockTypes(), null, null); // Dynamic: all blocks that can be in columns
   }
 
   // Get active items for overlay
@@ -679,19 +709,19 @@ export default function TeachingCourseTemplate() {
                           onAddElement={(accordionId) =>
                             handleOpenModal(
                               "add",
-                              ["accordion", "text", "dropdown", "columnLayout", "heading"],
+                              [...getNestableBlockTypes(), "columnLayout"], // Dynamic: all nestable blocks + columnLayout
                               accordionId
                             )
                           }
                           onAddBlockToLayout={handleAddBlockToColumnLayout}
                           onEditAccordion={(accordionId) =>
-                            handleOpenModal("edit", ["accordion"], accordionId)
+                            handleOpenModal("edit", getContainerBlockTypes(), accordionId) // Dynamic: all container blocks
                           }
                           onDeleteAccordion={handleDeleteRow}
                           onEditBlock={(blockId) =>
                             handleOpenModal(
                               "edit",
-                              ["text", "dropdown", "heading"],
+                              getContentBlockTypes(), // Dynamic: all content blocks
                               null,
                               blockId
                             )
@@ -711,7 +741,7 @@ export default function TeachingCourseTemplate() {
                           onEditElement={() =>
                             handleOpenModal(
                               "edit",
-                              ["text", "dropdown", "heading"],
+                              getContentBlockTypes(), // Dynamic: all content blocks
                               null,
                               item.id
                             )

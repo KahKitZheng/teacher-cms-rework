@@ -12,6 +12,7 @@ export type TileInfoHeadingTemplateProps = {
   level?: "tile" | "accordion" | "column"; // Hierarchy level for collision detection
   onEditElement?: () => void;
   onDeleteElement?: () => void;
+  isPreview?: boolean;
 };
 
 export default function TileInfoHeadingTemplate(
@@ -26,6 +27,7 @@ export default function TileInfoHeadingTemplate(
     level,
     onEditElement,
     onDeleteElement,
+    isPreview,
   } = props;
 
   const [heading, setHeading] = useState(tileInfo.name);
@@ -43,6 +45,7 @@ export default function TileInfoHeadingTemplate(
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
       level={level}
+      isPreview={isPreview}
       actions={{
         update: onEditElement,
         delete: onDeleteElement,

@@ -14,6 +14,7 @@ export type TileInfoDropdownTemplateProps = {
   onAddElement?: () => void;
   onEditElement?: () => void;
   onDeleteElement?: () => void;
+  isPreview?: boolean;
 };
 
 export default function TileInfoDropdownTemplate(
@@ -29,6 +30,7 @@ export default function TileInfoDropdownTemplate(
     onAddElement,
     onEditElement,
     onDeleteElement,
+    isPreview,
   } = props;
   const dropdownData = tileInfo;
 
@@ -53,6 +55,7 @@ export default function TileInfoDropdownTemplate(
       hoveredBlockId={hoveredBlockId}
       isDragOverlay={isDragOverlay}
       level={level}
+      isPreview={isPreview}
       actions={{
         // add: onAddElement,
         update: onEditElement,

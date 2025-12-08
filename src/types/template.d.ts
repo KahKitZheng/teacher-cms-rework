@@ -118,6 +118,13 @@ type TileInfoBlockDropdown = TileInfoBlockBase & {
   options: TileInfoSelectOption[];
 };
 
+type TileInfoBlockTag = TileInfoBlockBase & {
+  type: "tag";
+  name: string;
+  tagType: string; // Category dropdown (e.g., "kerndoel", "begrippen")
+  tags: string[]; // List of tag values
+};
+
 type TileInfoBlock =
   | TileInfoBlockAccordion // Collapsible container block
   | TileInfoColumnLayout // Layout container for columns
@@ -125,7 +132,8 @@ type TileInfoBlock =
   | TileInfoBlockHeading // Heading block
   | TileInfoBlockText // Text block (might be omitted if tiptap is used)
   | TileInfoBlockParagraph // Paragraph block (TipTap)
-  | TileInfoBlockDropdown; // Dropdown/select block
+  | TileInfoBlockDropdown // Dropdown/select block
+  | TileInfoBlockTag; // Tag block
 
 /**
  *  ENUMS

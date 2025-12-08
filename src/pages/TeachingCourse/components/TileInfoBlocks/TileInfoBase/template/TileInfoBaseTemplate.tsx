@@ -25,6 +25,8 @@ type TileInfoBaseTemplateProps = {
     update?: () => void;
     delete?: () => void;
   };
+  hasLabel?: boolean;
+  isPreview?: boolean; // Hide drag handle and actions when in preview mode
 };
 
 export default function TileInfoBaseTemplate(
@@ -39,6 +41,8 @@ export default function TileInfoBaseTemplate(
     hoveredBlockId,
     isDragOverlay = false,
     level = "tile",
+    hasLabel = true,
+    isPreview = false,
   } = props;
 
   const [title, setTitle] = useState(props.title);
@@ -80,7 +84,13 @@ export default function TileInfoBaseTemplate(
   const contentStyle = {
     opacity: isDragOverlay
       ? 1
-      : getBlockContentOpacity(isDragging, activeBlockId, blockId, isHovered, activeId),
+      : getBlockContentOpacity(
+          isDragging,
+          activeBlockId,
+          blockId,
+          isHovered,
+          activeId
+        ),
     transition: `opacity ${DRAG_STYLES.TRANSITION}`,
     display: "flex",
     flexDirection: "column" as const,
@@ -97,46 +107,52 @@ export default function TileInfoBaseTemplate(
       style={style}
       {...(isDragOverlay ? {} : attributes)}
     >
-      {/* Actions - show with overlay styling if isDragOverlay */}
-      <div
-        style={{
-          position: "absolute",
-          transform: "translateY(calc(-24px - 50%))",
-        }}
-      >
-        <DragHandle
-          listeners={listeners}
-          isHovered={isHovered}
-          isDragOverlay={isDragOverlay}
-        />
-      </div>
-      <div
-        styleName="actions"
-        style={{
-          position: "absolute",
-          transform: "translateY(calc(-24px - 50%))",
-          right: "16px",
-        }}
-      >
-        <InfoBlockActions
-          isDragOverlay={isDragOverlay}
-          // handleAdd={actions?.add}
-          handleEdit={actions?.update}
-          handleDelete={actions?.delete}
-        />
-      </div>
+      {/* Actions - show with overlay styling if isDragOverlay, hide in preview */}
+      {!isPreview && (
+        <>
+          <div
+            style={{
+              position: "absolute",
+              transform: "translateY(calc(-24px - 50%))",
+            }}
+          >
+            <DragHandle
+              listeners={listeners}
+              isHovered={isHovered}
+              isDragOverlay={isDragOverlay}
+            />
+          </div>
+          <div
+            styleName="actions"
+            style={{
+              position: "absolute",
+              transform: "translateY(calc(-24px - 50%))",
+              right: "16px",
+            }}
+          >
+            <InfoBlockActions
+              isDragOverlay={isDragOverlay}
+              // handleAdd={actions?.add}
+              handleEdit={actions?.update}
+              handleDelete={actions?.delete}
+            />
+          </div>
+        </>
+      )}
 
       {/* Content */}
       <div style={contentStyle}>
-        <div styleName="header">
-          <input
-            type="text"
-            value={title}
-            placeholder="Title"
-            styleName="title-input"
-            onChange={(e) => setTitle(e.target.value)}
-          />
-        </div>
+        {hasLabel && (
+          <div styleName="header">
+            <input
+              type="text"
+              value={title}
+              placeholder="Title"
+              styleName="title-input"
+              onChange={(e) => setTitle(e.target.value)}
+            />
+          </div>
+        )}
         {children}
       </div>
     </div>
