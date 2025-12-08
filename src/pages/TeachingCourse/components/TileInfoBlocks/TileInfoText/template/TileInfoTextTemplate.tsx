@@ -59,6 +59,7 @@ export default function TileInfoTextTemplate(
         placeholder="Description"
         value={text}
         onChange={handleTextChange}
+        disabled={isPreview}
       />
     </TileInfoBaseTemplate>
   );

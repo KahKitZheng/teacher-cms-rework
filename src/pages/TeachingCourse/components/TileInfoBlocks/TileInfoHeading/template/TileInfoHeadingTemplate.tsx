@@ -57,6 +57,7 @@ export default function TileInfoHeadingTemplate(
         placeholder="Enter heading..."
         value={heading}
         onChange={handleHeadingChange}
+        disabled={isPreview}
       />
     </TileInfoBaseTemplate>
   );

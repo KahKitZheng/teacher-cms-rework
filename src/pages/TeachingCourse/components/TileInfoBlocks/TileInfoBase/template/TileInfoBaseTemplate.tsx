@@ -150,6 +150,7 @@ export default function TileInfoBaseTemplate(
               placeholder="Title"
               styleName="title-input"
               onChange={(e) => setTitle(e.target.value)}
+              disabled={isPreview}
             />
           </div>
         )}

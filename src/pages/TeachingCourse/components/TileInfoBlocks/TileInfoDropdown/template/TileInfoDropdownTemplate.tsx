@@ -66,6 +66,7 @@ export default function TileInfoDropdownTemplate(
         isMulti
         isSearchable
         isClearable={false}
+        isDisabled={isPreview}
         hideSelectedOptions={false}
         className="react-select-container"
         classNamePrefix="react-select"

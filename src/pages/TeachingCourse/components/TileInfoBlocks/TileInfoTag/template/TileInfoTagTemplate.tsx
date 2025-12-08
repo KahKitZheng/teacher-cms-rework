@@ -125,6 +125,7 @@ export default function TileInfoTagTemplate(
           {/* Dropdown for tag type */}
           <CreatableSelect
             isClearable
+            isDisabled={isPreview}
             className="react-select-container"
             classNamePrefix="react-select"
             placeholder="Select or create tag type..."
@@ -143,11 +144,13 @@ export default function TileInfoTagTemplate(
               value={currentInput}
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
+              disabled={isPreview}
             />
             <button
               type="button"
               styleName="format-btn"
               onClick={handleOpenModal}
+              disabled={isPreview}
             >
               Format
             </button>
@@ -164,6 +167,7 @@ export default function TileInfoTagTemplate(
                     styleName="remove-btn"
                     onClick={() => removeTag(tag)}
                     aria-label={`Remove ${tag}`}
+                    disabled={isPreview}
                   >
                     ×
                   </button>
