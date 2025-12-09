@@ -45,7 +45,6 @@ type Tile = {
 // Base type for all TileInfo blocks - contains common fields
 type TileInfoBlockBase = {
   type: string;
-  level: number; // Dynamic level: 0 = tile level, 1+ = nested levels
   id: number;
   order: number;
   parentId?: number; // Optional: References parent container ID (undefined for tile-level)

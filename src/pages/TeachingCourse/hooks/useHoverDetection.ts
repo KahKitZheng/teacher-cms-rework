@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { SELECTORS, REGEX } from "../utils/dragDropConstants";
-import { getAllRowIds, findBlockById } from "../utils/dragDropHelpers";
+import { getAllRowIds } from "../utils/dragDropHelpers";
+import type { BlockLevel } from "../utils/levelHelpers";
 
 type HoverState = {
   hoveredColumnId: string | null;
@@ -8,40 +9,18 @@ type HoverState = {
 };
 
 /**
- * Helper to determine a block's level
- */
-function getBlockLevel(
-  blockId: number,
-  tileInfo: Tile[]
-): "tile" | "row" | "column" | null {
-  const result = findBlockById(tileInfo, blockId);
-  if (!result) return null;
-
-  const { location } = result;
-
-  // Tile-level: itemIdx === -1
-  if (location.itemIdx === -1) return "tile";
-
-  // Column-level: colIdx !== -1
-  if (location.colIdx !== -1) return "column";
-
-  // Row-level: itemIdx !== -1 && colIdx === -1
-  return "row";
-}
-
-/**
  * Check if a dragged block can be dropped on a target block based on their levels
  */
 function canDropOnBlock(
-  activeLevel: string | null,
-  targetLevel: string | null
+  activeLevel: BlockLevel | undefined,
+  targetLevel: BlockLevel | undefined
 ): boolean {
   if (!activeLevel || !targetLevel) return false;
 
   // Tile-level blocks can only drop on other tile-level blocks
   if (activeLevel === "tile") return targetLevel === "tile";
 
-  // Row-level and column-level blocks can drop on blocks at the same level
+  // Accordion-level and column-level blocks can drop on blocks at the same level
   return activeLevel === targetLevel;
 }
 
@@ -51,7 +30,8 @@ function canDropOnBlock(
  */
 export function useHoverDetection(
   activeBlockId: number | null,
-  tileInfo: Tile[]
+  tileInfo: Tile[],
+  blockLevels: Map<number, BlockLevel>
 ): HoverState {
   const [hoveredColumnId, setHoveredColumnId] = useState<string | null>(null);
   const [hoveredBlockId, setHoveredBlockId] = useState<number | null>(null);
@@ -69,9 +49,7 @@ export function useHoverDetection(
 
       // Detect hovered column
       // Get the active block's level for compatibility checking
-      const activeLevel = activeBlockId
-        ? getBlockLevel(activeBlockId, tileInfo)
-        : null;
+      const activeLevel = activeBlockId ? blockLevels.get(activeBlockId) : undefined;
 
       // Only detect column hovers if the active block can move into columns
       // Tile-level blocks cannot move into columns
@@ -119,7 +97,7 @@ export function useHoverDetection(
         if (blockId === activeBlockId) continue;
 
         // Check if the hovered block is compatible with the active block's level
-        const targetLevel = getBlockLevel(blockId, tileInfo);
+        const targetLevel = blockLevels.get(blockId);
         if (!canDropOnBlock(activeLevel, targetLevel)) continue;
 
         const rect = blockElement.getBoundingClientRect();
@@ -140,7 +118,7 @@ export function useHoverDetection(
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [activeBlockId, tileInfo]);
+  }, [activeBlockId, tileInfo, blockLevels]);
 
   return { hoveredColumnId, hoveredBlockId };
 }

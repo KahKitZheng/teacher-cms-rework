@@ -1,6 +1,7 @@
 import { closestCenter, closestCorners, type CollisionDetection } from "@dnd-kit/core";
 import { getAllRowIds, getAllColumnLayoutIds } from "./dragDropHelpers";
 import { SELECTORS } from "./dragDropConstants";
+import type { BlockLevel } from "./levelHelpers";
 
 /**
  * Custom collision detection that filters droppable containers based on drag type and level
@@ -14,7 +15,8 @@ import { SELECTORS } from "./dragDropConstants";
  * - Column layouts can drop on blocks or other column layouts within the same row
  */
 export function createCustomCollisionDetection(
-  tileInfo: Tile[]
+  tileInfo: Tile[],
+  blockLevels: Map<number, BlockLevel>
 ): CollisionDetection {
   return (args) => {
     const allRowIds = getAllRowIds(tileInfo);
@@ -71,35 +73,34 @@ export function createCustomCollisionDetection(
       });
     } else {
       // Blocks: allow dropping on blocks at same level, columns, and rows (to move into row)
-      // Get the level of the active block
-      const activeData = args.active.data?.current;
-      const activeLevel = activeData?.level;
+      // Get the level of the active block from our computed map
+      const activeLevel = blockLevels.get(args.active.id as number);
 
       const blockContainers = args.droppableContainers.filter(
         (container: any) => {
           const containerId = container.id;
-          const containerData = container.data?.current;
 
           // Check if container is a row (rows are at tile level)
           const isRow = allRowIds.includes(containerId as number);
 
           // Check if it's a block by looking at the data type or if it's a numeric ID (sortable blocks)
-          const isBlock = (containerData?.type === "block") ||
-            (typeof containerId === "number" && !isRow && !allLayoutIds.includes(containerId as number));
+          const isBlock = (typeof containerId === "number" && !isRow && !allLayoutIds.includes(containerId as number));
 
           // Special case: Tile-level blocks can drop on rows AND other tile-level blocks
           // This makes them sort vertically at tile level
           if (activeLevel === "tile") {
             // Allow dropping on rows OR tile-level blocks
-            return isRow || (isBlock && containerData?.level === "tile");
+            const containerLevel = blockLevels.get(containerId as number);
+            return isRow || (isBlock && containerLevel === "tile");
           }
 
           // Level-based filtering for non-tile-level blocks:
-          // - Row-level blocks can only drop on other row-level blocks
+          // - Accordion-level blocks can only drop on other accordion-level blocks
           // - Column-level blocks can only drop on other column-level blocks
-          if (isBlock && activeLevel && containerData?.level) {
+          if (isBlock && activeLevel) {
             // Blocks can only swap with blocks at the same level
-            return containerData.level === activeLevel;
+            const containerLevel = blockLevels.get(containerId as number);
+            return containerLevel === activeLevel;
           }
 
           return isBlock;

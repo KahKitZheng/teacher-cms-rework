@@ -12,7 +12,6 @@ import type { BlockType } from './blockRegistry';
 export function createBlock(
   blockId: number,
   type: BlockType,
-  level: number,
   order: number,
   options?: {
     name?: string;
@@ -32,7 +31,6 @@ export function createBlock(
 
   const baseFields = {
     id: blockId,
-    level,
     order,
     parentId,
   };
@@ -44,32 +42,42 @@ export function createBlock(
       return {
         ...baseFields,
         type: "text",
-        name,
-        data: "",
+        data: {
+          name,
+          content: "",
+        },
       } as TileInfoBlockText;
 
     case "paragraph":
       return {
         ...baseFields,
         type: "paragraph",
-        name,
-        data: {},
+        data: {
+          name,
+          content: {},
+        },
       } as TileInfoBlockParagraph;
 
     case "heading":
       return {
         ...baseFields,
         type: "heading",
-        name,
+        data: {
+          name,
+          icon,
+          headingLevel: "h2",
+        },
       } as TileInfoBlockHeading;
 
     case "tag":
       return {
         ...baseFields,
         type: "tag",
-        name,
-        tagType: "",
-        tags: [],
+        data: {
+          name,
+          tagType: "",
+          tags: [],
+        },
       } as TileInfoBlockTag;
 
     case "divider":
@@ -82,17 +90,21 @@ export function createBlock(
       return {
         ...baseFields,
         type: "comment",
-        name,
-        commentType: "info",
-        data: {},
+        data: {
+          name,
+          commentType: "info",
+          content: {},
+        },
       } as TileInfoBlockComment;
 
     case "dropdown":
       return {
         ...baseFields,
         type: "dropdown",
-        name,
-        options: [],
+        data: {
+          name,
+          options: [],
+        },
       } as TileInfoBlockDropdown;
 
     // Container blocks
@@ -100,9 +112,11 @@ export function createBlock(
       return {
         ...baseFields,
         type: "accordion",
-        icon,
-        name,
         children: [],
+        data: {
+          name,
+          icon,
+        },
       } as TileInfoBlockAccordion;
 
     case "column":
@@ -123,7 +137,7 @@ export function createBlock(
 
       // Create child columns with equal width by default
       const columns: TileInfoBlockColumn[] = Array.from({ length: numColumns }, (_, i) =>
-        createBlock(generateColumnId(), "column", level, i, {
+        createBlock(generateColumnId(), "column", i, {
           parentId: blockId,
         }) as TileInfoBlockColumn
       );
@@ -149,69 +163,27 @@ export function createMockBlock(
   type: BlockType,
   options?: { columns?: number; variant?: string }
 ): TileInfoBlock {
-  const baseBlock = {
-    id: -1, // Mock ID for preview
-    name: "Preview Block",
-    level: 0, // 0 = tile level
-    order: 0,
-  };
-
-  // Handle container/layout blocks that aren't in ContentBlockType
-  switch (type) {
-    case "accordion":
-      return {
-        ...baseBlock,
-        type: "accordion",
-        children: [],
-      } as TileInfoBlockAccordion;
-
-    case "columnLayout":
-      return {
-        ...baseBlock,
-        type: "columnLayout",
+  // Special handling for columnLayout which requires generateColumnId
+  if (type === "columnLayout") {
+    let mockColumnId = -100;
+    return createBlock(
+      -1,           // Mock ID for preview
+      type,
+      0,            // order doesn't matter for preview
+      {
+        name: "Preview Block",
         parentId: -1,
-        children: [],
-      } as TileInfoColumnLayout;
-
-    case "column":
-      return {
-        ...baseBlock,
-        type: "column",
-        parentId: -1,
-        children: [],
-      } as TileInfoBlockColumn;
-
-    case "heading":
-      // Special case: heading can have a variant option
-      return {
-        ...baseBlock,
-        type: "heading",
-        headingLevel: (options?.variant || "h2") as
-          | "h1"
-          | "h2"
-          | "h3"
-          | "h4"
-          | "h5"
-          | "h6",
-      } as TileInfoBlockHeading;
-
-    case "tag":
-      // Special case: add example tag for preview
-      return {
-        ...baseBlock,
-        type: "tag",
-        tagType: "",
-        tags: ["example-tag"],
-      } as TileInfoBlockTag;
-
-    // For other content blocks, use the shared createBlock function
-    default:
-      return createBlock(
-        -1,           // Mock ID for preview
-        type,
-        0,            // 0 = tile level
-        0,            // order doesn't matter for preview
-        { name: "Preview Block" }
-      );
+        numColumns: options?.columns || 2,
+        generateColumnId: () => mockColumnId--
+      }
+    );
   }
+
+  // For all other blocks, use the shared createBlock function
+  return createBlock(
+    -1,           // Mock ID for preview
+    type,
+    0,            // order doesn't matter for preview
+    { name: "Preview Block" }
+  );
 }

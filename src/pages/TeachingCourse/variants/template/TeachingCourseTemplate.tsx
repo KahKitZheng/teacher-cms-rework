@@ -4,8 +4,9 @@ import RecursiveAccordionRenderer from "../../components/RecursiveRowRenderer/Re
 import Button from "src/components/Button/Button";
 import { tilesData } from "../../mock-data/tileInfo";
 import { CircleQuestionMark, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ElementPickerModal from "../../components/ElementPickerModal/ElementPickerModal";
+import { computeBlockLevels, type BlockLevel } from "../../utils/levelHelpers";
 import {
   DndContext,
   DragOverlay,
@@ -73,10 +74,21 @@ export default function TeachingCourseTemplate() {
     | undefined
   >(undefined);
 
+  // Compute block levels from tree structure (local state for template mode)
+  const [blockLevels, setBlockLevels] = useState<Map<number, BlockLevel>>(() =>
+    computeBlockLevels(tilesData)
+  );
+
+  // Recompute levels whenever tileInfo changes
+  useEffect(() => {
+    setBlockLevels(computeBlockLevels(tileInfo));
+  }, [tileInfo]);
+
   // Use custom hook for hover detection
   const { hoveredColumnId, hoveredBlockId } = useHoverDetection(
     activeBlockId,
-    tileInfo
+    tileInfo,
+    blockLevels
   );
 
   // Setup sensors for drag interactions
@@ -92,7 +104,10 @@ export default function TeachingCourseTemplate() {
   );
 
   // Custom collision detection based on drag type
-  const customCollisionDetection = createCustomCollisionDetection(tileInfo);
+  const customCollisionDetection = createCustomCollisionDetection(
+    tileInfo,
+    blockLevels
+  );
 
   function handleDragStart(event: any) {
     const result = handleDragStartUtil(event, tileInfo);
@@ -103,7 +118,9 @@ export default function TeachingCourseTemplate() {
 
   // Check if the active block is a tile-level block (not inside an accordion)
   const isTileLevelBlock = activeBlockId
-    ? tileInfo[0].children.some(child => !isContainer(child) && child.id === activeBlockId)
+    ? tileInfo[0].children.some(
+        (child) => !isContainer(child) && child.id === activeBlockId
+      )
     : false;
 
   function resetDragState() {
@@ -194,24 +211,26 @@ export default function TeachingCourseTemplate() {
 
       // Recursively remove row from children
       function removeRow(children: TileInfoBlock[]): any[] {
-        return children.filter(child => {
-          if (child.type === "accordion" && child.id === rowId) {
-            return false; // Remove this row
-          }
-          if (child.type === "accordion") {
-            // Recursively search nested rows
+        return children
+          .filter((child) => {
+            if (child.type === "accordion" && child.id === rowId) {
+              return false; // Remove this row
+            }
+            if (child.type === "accordion") {
+              // Recursively search nested rows
+              return true;
+            }
             return true;
-          }
-          return true;
-        }).map(child => {
-          if (child.type === "accordion") {
-            return {
-              ...child,
-              children: removeRow(child.children)
-            };
-          }
-          return child;
-        });
+          })
+          .map((child) => {
+            if (child.type === "accordion") {
+              return {
+                ...child,
+                children: removeRow(child.children),
+              };
+            }
+            return child;
+          });
       }
 
       updatedTiles[0] = {
@@ -228,30 +247,34 @@ export default function TeachingCourseTemplate() {
 
       // Recursively remove block from all children and column layouts
       function removeBlock(children: TileInfoBlock[]): any[] {
-        return children.filter(child => {
-          // Remove if this is a content block with matching ID
-          if (isContentBlock(child) && child.id === blockId) {
-            return false;
-          }
-          return true;
-        }).map(child => {
-          if (child.type === "accordion") {
-            return {
-              ...child,
-              children: removeBlock(child.children)
-            };
-          }
-          if (child.type === "columnLayout") {
-            return {
-              ...child,
-              children: child.children.map(column => ({
-                ...column,
-                children: column.children.filter(block => block.id !== blockId),
-              })),
-            };
-          }
-          return child;
-        });
+        return children
+          .filter((child) => {
+            // Remove if this is a content block with matching ID
+            if (isContentBlock(child) && child.id === blockId) {
+              return false;
+            }
+            return true;
+          })
+          .map((child) => {
+            if (child.type === "accordion") {
+              return {
+                ...child,
+                children: removeBlock(child.children),
+              };
+            }
+            if (child.type === "columnLayout") {
+              return {
+                ...child,
+                children: child.children.map((column) => ({
+                  ...column,
+                  children: column.children.filter(
+                    (block) => block.id !== blockId
+                  ),
+                })),
+              };
+            }
+            return child;
+          });
       }
 
       updatedTiles[0] = {
@@ -269,20 +292,22 @@ export default function TeachingCourseTemplate() {
 
       // Recursively remove layout from row children
       function removeLayout(children: TileInfoBlock[]): any[] {
-        return children.filter(child => {
-          if (child.type === "columnLayout" && child.id === layoutId) {
-            return false; // Remove this layout
-          }
-          return true;
-        }).map(child => {
-          if (child.type === "accordion") {
-            return {
-              ...child,
-              children: removeLayout(child.children)
-            };
-          }
-          return child;
-        });
+        return children
+          .filter((child) => {
+            if (child.type === "columnLayout" && child.id === layoutId) {
+              return false; // Remove this layout
+            }
+            return true;
+          })
+          .map((child) => {
+            if (child.type === "accordion") {
+              return {
+                ...child,
+                children: removeLayout(child.children),
+              };
+            }
+            return child;
+          });
       }
 
       updatedTiles[0] = {
@@ -305,13 +330,15 @@ export default function TeachingCourseTemplate() {
 
       if (targetRowId !== null) {
         // Adding nested accordion inside an existing accordion
-        function findAndAddNestedAccordion(children: TileInfoBlock[], targetId: number): boolean {
+        function findAndAddNestedAccordion(
+          children: TileInfoBlock[],
+          targetId: number
+        ): boolean {
           for (const child of children) {
             if (child.type === "accordion" && child.id === targetId) {
               const newAccordion = createBlock(
                 newAccordionId,
                 "accordion",
-                child.level, // Same level as parent
                 child.children.length, // Order within parent
                 { parentId: targetId }
               );
@@ -333,7 +360,6 @@ export default function TeachingCourseTemplate() {
         const newAccordion = createBlock(
           newAccordionId,
           "accordion",
-          0, // Tile level = 0
           tile.children.length // Total count of tile-level items
         );
         tile.children.push(newAccordion);
@@ -359,22 +385,21 @@ export default function TeachingCourseTemplate() {
         const { block: oldBlock, location } = blockResult;
         const tile = updatedTiles[location.tileIdx];
 
-        // Type guard: ensure oldBlock has a name property
-        if (!('name' in oldBlock)) {
+        // Type guard: ensure oldBlock has a data property with name
+        if (
+          !("data" in oldBlock) ||
+          !oldBlock.data ||
+          typeof oldBlock.data !== "object" ||
+          !("name" in oldBlock.data)
+        ) {
           return updatedTiles;
         }
 
         // Create updated block with same properties but different type
-        const updatedBlock = createBlock(
-          oldBlock.id,
-          type,
-          oldBlock.level,
-          oldBlock.order,
-          {
-            name: oldBlock.name,
-            parentId: oldBlock.parentId
-          }
-        );
+        const updatedBlock = createBlock(oldBlock.id, type, oldBlock.order, {
+          name: oldBlock.data.name as string,
+          parentId: oldBlock.parentId,
+        });
 
         // Update block in the correct location
         if (location.rowIdx === -1) {
@@ -387,8 +412,12 @@ export default function TeachingCourseTemplate() {
             row.children[location.blockIdx] = updatedBlock;
           } else {
             // Column-level block
-            const layout = row.children[location.layoutIdx] as TileInfoColumnLayout;
-            const column = layout.children.find(col => col.order === location.colIdx);
+            const layout = row.children[
+              location.layoutIdx
+            ] as TileInfoColumnLayout;
+            const column = layout.children.find(
+              (col) => col.order === location.colIdx
+            );
             if (column && column.type === "column") {
               column.children[location.blockIdx] = updatedBlock;
             }
@@ -407,17 +436,19 @@ export default function TeachingCourseTemplate() {
         const tile = updatedTiles[0];
 
         // Recursively find and add to target row
-        function findAndAddToRow(children: TileInfoBlock[], targetId: number): boolean {
+        function findAndAddToRow(
+          children: TileInfoBlock[],
+          targetId: number
+        ): boolean {
           for (const child of children) {
             if (child.type === "accordion" && child.id === targetId) {
               const newBlock = createBlock(
                 newBlockId,
                 type,
-                child.level, // Same level as parent row
                 child.children.length, // Order within row
                 {
                   name: "",
-                  parentId: targetId
+                  parentId: targetId,
                 }
               );
               child.children.push(newBlock);
@@ -436,20 +467,27 @@ export default function TeachingCourseTemplate() {
           // Add to column layout - find column with fewest blocks
           function findAndAddToLayout(children: TileInfoBlock[]): boolean {
             for (const child of children) {
-              if (child.type === "columnLayout" && child.id === targetLayoutId) {
+              if (
+                child.type === "columnLayout" &&
+                child.id === targetLayoutId
+              ) {
                 // Find column with fewest blocks
-                const columnWithFewestBlocks = child.children.reduce((min, col) => {
-                  return col.children.length < min.children.length ? col : min;
-                }, child.children[0]);
+                const columnWithFewestBlocks = child.children.reduce(
+                  (min, col) => {
+                    return col.children.length < min.children.length
+                      ? col
+                      : min;
+                  },
+                  child.children[0]
+                );
 
                 const newBlock = createBlock(
                   newBlockId,
                   type,
-                  child.level, // Same level as layout
                   columnWithFewestBlocks.children.length, // Order within column
                   {
                     name: "",
-                    parentId: columnWithFewestBlocks.id // Parent is the column
+                    parentId: columnWithFewestBlocks.id, // Parent is the column
                   }
                 );
                 columnWithFewestBlocks.children.push(newBlock);
@@ -473,7 +511,6 @@ export default function TeachingCourseTemplate() {
           const newBlock = createBlock(
             newBlockId,
             type,
-            0, // Tile level = 0
             tile.children.length, // Order within tile
             { name: "" }
           );
@@ -517,12 +554,11 @@ export default function TeachingCourseTemplate() {
             const newColumnLayout = createBlock(
               newLayoutId,
               "columnLayout",
-              child.level,
               child.children.length,
               {
                 parentId: targetRowId,
                 numColumns,
-                generateColumnId: () => +randomId()
+                generateColumnId: () => +randomId(),
               }
             );
 
@@ -603,7 +639,9 @@ export default function TeachingCourseTemplate() {
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
           modifiers={
-            activeId || isTileLevelBlock ? [restrictToVerticalAxis, restrictToParentElement] : []
+            activeId || isTileLevelBlock
+              ? [restrictToVerticalAxis, restrictToParentElement]
+              : []
           }
         >
           {/* Tile-level sortable context (blocks and rows) */}
@@ -626,7 +664,7 @@ export default function TeachingCourseTemplate() {
                   {tile.children
                     .sort((a, b) => a.order - b.order)
                     .map((item) =>
-                      isContainer(item) && item.type === 'accordion' ? (
+                      isContainer(item) && item.type === "accordion" ? (
                         <RecursiveAccordionRenderer
                           key={item.id}
                           accordion={item}
@@ -643,8 +681,13 @@ export default function TeachingCourseTemplate() {
                             )
                           }
                           onAddBlockToLayout={handleAddBlockToColumnLayout}
-                          onEditAccordion={(accordionId) =>
-                            handleOpenModal("edit", getContainerBlockTypes(), accordionId) // Dynamic: all container blocks
+                          onEditAccordion={
+                            (accordionId) =>
+                              handleOpenModal(
+                                "edit",
+                                getContainerBlockTypes(),
+                                accordionId
+                              ) // Dynamic: all container blocks
                           }
                           onDeleteAccordion={handleDeleteRow}
                           onEditBlock={(blockId) =>

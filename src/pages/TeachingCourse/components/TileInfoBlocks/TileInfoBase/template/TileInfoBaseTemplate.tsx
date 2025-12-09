@@ -60,7 +60,6 @@ export default function TileInfoBaseTemplate(
     data: {
       type: "block",
       blockId: blockId,
-      level: level, // Add level for collision detection
     },
     disabled: isDragOverlay,
   });

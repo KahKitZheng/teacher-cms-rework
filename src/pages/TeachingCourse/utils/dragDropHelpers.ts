@@ -339,7 +339,6 @@ export function moveBlockToColumn(
 
   // Update block properties
   block.parentId = targetColumn.id;
-  block.level = targetLayout.level;
   block.order = targetColumn.children.length;
 
   targetColumn.children.push(block);
@@ -403,7 +402,6 @@ export function moveBlockToRow(
         if (child.id === targetRowId) {
           // Found target row - add block
           block.parentId = targetRowId;
-          block.level = child.level;
           block.order = child.children.length;
           child.children.push(block);
           return true;
